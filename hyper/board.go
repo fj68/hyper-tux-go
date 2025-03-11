@@ -18,21 +18,24 @@ func (g Goal) Reached(actor Actor) bool {
 		actor.Point.Equals(actor.Point))
 }
 
+type VWall = []int // | : list of column indices where the wall exists
+type HWall = []int // _ : list of row indices where the wall exists
+
 type Board struct {
 	rand *rand.Rand
 	Size
 	Goal
 	Counter
-	VWalls [][]int
-	HWalls [][]int
+	VWalls []VWall
+	HWalls []HWall
 	Actors []Actor
 }
 
 func NewBoard(size Size) *Board {
 	b := &Board{
 		Size:   size,
-		VWalls: make([][]int, size.H), // |
-		HWalls: make([][]int, size.W), // _
+		VWalls: make([]VWall, size.H),
+		HWalls: make([]HWall, size.W),
 	}
 	b.initCenterWalls()
 	return b
