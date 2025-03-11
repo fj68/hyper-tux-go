@@ -8,16 +8,6 @@ import (
 	"github.com/fj68/hyper-tux-go/slicetools"
 )
 
-type Goal struct {
-	Color
-	Point
-}
-
-func (g Goal) Reached(actor Actor) bool {
-	return (g.Color == actor.Color &&
-		actor.Point.Equals(actor.Point))
-}
-
 type VWall = []int // | : list of column indices where the wall exists
 type HWall = []int // _ : list of row indices where the wall exists
 
