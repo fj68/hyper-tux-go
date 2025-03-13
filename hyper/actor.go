@@ -2,9 +2,9 @@ package hyper
 
 type Actor struct {
 	Color
-	Point
+	*Point
 }
 
-func (a *Actor) MoveTo(p Point) {
+func (a *Actor) MoveTo(p *Point) {
 	a.Point = p
 }

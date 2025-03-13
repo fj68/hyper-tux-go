@@ -11,22 +11,22 @@ type HWall = []int // _ : list of row indices where the wall exists
 
 type Board struct {
 	rand *rand.Rand
-	Size
-	*Goal
 	*Counter
+	*Size
+	*Goal
 	VWalls []VWall
 	HWalls []HWall
 	Actors map[Color]*Actor
 }
 
-func NewBoard(size Size) (*Board, error) {
+func NewBoard(size *Size) (*Board, error) {
 	b := &Board{
-		rand:   rand.New(rand.NewSource(time.Now().Unix())),
-		Size:   size,
+		rand:    rand.New(rand.NewSource(time.Now().Unix())),
 		Counter: &Counter{},
-		Actors: map[Color]*Actor{},
-		VWalls: make([]VWall, size.H),
-		HWalls: make([]HWall, size.W),
+		Size:    size,
+		Actors:  map[Color]*Actor{},
+		VWalls:  make([]VWall, size.H),
+		HWalls:  make([]HWall, size.W),
 	}
 
 	// place walls
@@ -40,7 +40,7 @@ func NewBoard(size Size) (*Board, error) {
 	return b, nil
 }
 
-func (b *Board) ActorExists(p Point) bool {
+func (b *Board) ActorExists(p *Point) bool {
 	for _, actor := range b.Actors {
 		if actor.Point.Equals(p) {
 			return true
@@ -63,12 +63,12 @@ func (b *Board) PlaceActorAtRandom(color Color) error {
 	return nil
 }
 
-func (b *Board) Center() Rect {
+func (b *Board) Center() *Rect {
 	c := b.Size.Center()
-	return NewRect(Point{c.X - 1, c.Y - 1}, Size{2, 2})
+	return NewRect(&Point{c.X - 1, c.Y - 1}, &Size{2, 2})
 }
 
-func (b *Board) PutHWall(p Point) bool {
+func (b *Board) PutHWall(p *Point) bool {
 	for _, wall := range b.HWalls[p.X] {
 		if wall == p.Y {
 			return false
@@ -78,7 +78,7 @@ func (b *Board) PutHWall(p Point) bool {
 	return true
 }
 
-func (b *Board) PutVWall(p Point) bool {
+func (b *Board) PutVWall(p *Point) bool {
 	for _, wall := range b.VWalls[p.Y] {
 		if wall == p.X {
 			return false
@@ -99,9 +99,9 @@ func (b *Board) initCenterWalls() {
 	}
 }
 
-func (b *Board) RandomPlace() (p Point, ok bool) {
+func (b *Board) RandomPlace() (p *Point, ok bool) {
 	for i := 0; i < 50; i++ {
-		p = Point{
+		p = &Point{
 			b.rand.Intn(b.Size.W),
 			b.rand.Intn(b.Size.H),
 		}
@@ -153,7 +153,7 @@ func (b *Board) MoveActor(color Color, d Direction) (ok bool, finished bool) {
 	return
 }
 
-func (b *Board) NextStop(current Point, d Direction) Point {
+func (b *Board) NextStop(current *Point, d Direction) *Point {
 	switch d {
 	case North:
 		return b.nextStopNorth(current)
@@ -164,10 +164,10 @@ func (b *Board) NextStop(current Point, d Direction) Point {
 	case East:
 		return b.nextStopEast(current)
 	}
-	return Point{}
+	return nil
 }
 
-func (b *Board) nextStopNorth(current Point) Point {
+func (b *Board) nextStopNorth(current *Point) *Point {
 	walls := b.HWalls[current.X]
 	y := 0
 	for _, wall := range walls {
@@ -175,10 +175,10 @@ func (b *Board) nextStopNorth(current Point) Point {
 			y = wall
 		}
 	}
-	return Point{current.X, y}
+	return &Point{current.X, y}
 }
 
-func (b *Board) nextStopSouth(current Point) Point {
+func (b *Board) nextStopSouth(current *Point) *Point {
 	walls := b.HWalls[current.X]
 	y := b.Size.H - 1
 	for _, wall := range walls {
@@ -186,10 +186,10 @@ func (b *Board) nextStopSouth(current Point) Point {
 			y = wall
 		}
 	}
-	return Point{current.X, y}
+	return &Point{current.X, y}
 }
 
-func (b *Board) nextStopWest(current Point) Point {
+func (b *Board) nextStopWest(current *Point) *Point {
 	walls := b.VWalls[current.Y]
 	x := 0
 	for _, wall := range walls {
@@ -197,10 +197,10 @@ func (b *Board) nextStopWest(current Point) Point {
 			x = wall
 		}
 	}
-	return Point{x, current.Y}
+	return &Point{x, current.Y}
 }
 
-func (b *Board) nextStopEast(current Point) Point {
+func (b *Board) nextStopEast(current *Point) *Point {
 	walls := b.VWalls[current.Y]
 	x := b.Size.W - 1
 	for _, wall := range walls {
@@ -208,5 +208,5 @@ func (b *Board) nextStopEast(current Point) Point {
 			x = wall
 		}
 	}
-	return Point{x, current.Y}
+	return &Point{x, current.Y}
 }

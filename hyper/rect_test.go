@@ -9,32 +9,32 @@ import (
 func TestRect_Contains(t *testing.T) {
 	testcases := []struct {
 		Name string
-		hyper.Rect
-		hyper.Point
+		*hyper.Rect
+		*hyper.Point
 		Expected bool
 	}{
 		{
 			"totally contained",
-			hyper.Rect{hyper.Point{0, 0}, hyper.Point{5, 5}},
-			hyper.Point{3, 3},
+			&hyper.Rect{&hyper.Point{0, 0}, &hyper.Point{5, 5}},
+			&hyper.Point{3, 3},
 			true,
 		},
 		{
 			"on topleft edge",
-			hyper.Rect{hyper.Point{0, 0}, hyper.Point{5, 5}},
-			hyper.Point{0, 0},
+			&hyper.Rect{&hyper.Point{0, 0}, &hyper.Point{5, 5}},
+			&hyper.Point{0, 0},
 			true,
 		},
 		{
 			"on bottomright edge",
-			hyper.Rect{hyper.Point{0, 0}, hyper.Point{5, 5}},
-			hyper.Point{5, 5},
+			&hyper.Rect{&hyper.Point{0, 0}, &hyper.Point{5, 5}},
+			&hyper.Point{5, 5},
 			false,
 		},
 		{
 			"totally uncontained",
-			hyper.Rect{hyper.Point{0, 0}, hyper.Point{5, 5}},
-			hyper.Point{6, 6},
+			&hyper.Rect{&hyper.Point{0, 0}, &hyper.Point{5, 5}},
+			&hyper.Point{6, 6},
 			false,
 		},
 	}

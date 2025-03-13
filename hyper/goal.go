@@ -2,7 +2,7 @@ package hyper
 
 type Goal struct {
 	Color
-	Point
+	*Point
 }
 
 func (g Goal) Reached(actor *Actor) bool {
