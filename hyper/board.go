@@ -14,9 +14,10 @@ type Board struct {
 	*Counter
 	*Size
 	*Goal
-	VWalls []VWall
-	HWalls []HWall
-	Actors map[Color]*Actor
+	VWalls       []VWall
+	HWalls       []HWall
+	Actors       map[Color]*Actor
+	ColorWeights []int
 }
 
 func NewBoard(size *Size) (*Board, error) {
@@ -112,16 +113,12 @@ func (b *Board) RandomPlace() (p *Point, ok bool) {
 	return
 }
 
-func (b *Board) RandomColor(colors []Color) Color {
-	return colors[b.rand.Intn(len(colors))]
-}
-
 func (b *Board) PlaceGoalAtRandom() error {
 	pos, ok := b.RandomPlace()
 	if !ok || b.ActorExists(pos) {
 		return fmt.Errorf("unable to place goal")
 	}
-	color := b.RandomColor(AllColors)
+	color := RandomColor()
 	b.Goal = &Goal{color, pos}
 	return nil
 }
