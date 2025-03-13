@@ -41,26 +41,9 @@ func NewBoard(size *Size) (*Board, error) {
 	return b, nil
 }
 
-func (b *Board) ActorExists(p *Point) bool {
-	for _, actor := range b.Actors {
-		if actor.Point.Equals(p) {
-			return true
-		}
-	}
-	return false
-}
-
-func (b *Board) PlaceActorAtRandom(color Color) error {
-	actor, ok := b.Actors[color]
-	if !ok {
-		return fmt.Errorf("unable to find actor of color: %s", color)
-	}
-
-	pos, ok := b.RandomPlace()
-	if !ok || b.ActorExists(pos) {
-		return fmt.Errorf("unable to place actor: %s", color)
-	}
-	actor.MoveTo(pos)
+func (b *Board) NewGame() error {
+	b.Counter.Reset()
+	b.PlaceGoalAtRandom()
 	return nil
 }
 
@@ -100,6 +83,15 @@ func (b *Board) initCenterWalls() {
 	}
 }
 
+func (b *Board) ActorExists(p *Point) bool {
+	for _, actor := range b.Actors {
+		if actor.Point.Equals(p) {
+			return true
+		}
+	}
+	return false
+}
+
 func (b *Board) RandomPlace() (p *Point, ok bool) {
 	for i := 0; i < 50; i++ {
 		p = &Point{
@@ -113,6 +105,20 @@ func (b *Board) RandomPlace() (p *Point, ok bool) {
 	return
 }
 
+func (b *Board) PlaceActorAtRandom(color Color) error {
+	actor, ok := b.Actors[color]
+	if !ok {
+		return fmt.Errorf("unable to find actor of color: %s", color)
+	}
+
+	pos, ok := b.RandomPlace()
+	if !ok || b.ActorExists(pos) {
+		return fmt.Errorf("unable to place actor: %s", color)
+	}
+	actor.MoveTo(pos)
+	return nil
+}
+
 func (b *Board) PlaceGoalAtRandom() error {
 	pos, ok := b.RandomPlace()
 	if !ok || b.ActorExists(pos) {
@@ -120,12 +126,6 @@ func (b *Board) PlaceGoalAtRandom() error {
 	}
 	color := RandomColor()
 	b.Goal = &Goal{color, pos}
-	return nil
-}
-
-func (b *Board) NewGame() error {
-	b.Counter.Reset()
-	b.PlaceGoalAtRandom()
 	return nil
 }
 
