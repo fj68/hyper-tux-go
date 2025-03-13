@@ -22,10 +22,16 @@ func Some[T any](xs []T, f func(T) bool) bool {
 	return false
 }
 
-func Sum[T constraints.Integer | constraints.Float](xs []T) T {
-	var total T
-	for _, x := range xs {
-		total += x
+func FoldLeft[T any, U any](xs []T, init U, f func(acc U, v T, i int) U) U {
+	r := init
+	for i, x := range xs {
+		r = f(r, x, i)
 	}
-	return total
+	return r
+}
+
+func Sum[T constraints.Integer | constraints.Float](xs []T) T {
+	return FoldLeft(xs, 0, func(acc T, v T, i int) T {
+		return acc + v
+	})
 }
