@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	"github.com/fj68/hyper-tux-go/slicetools"
 )
 
 type VWall = []int // | : list of column indices where the wall exists
@@ -42,9 +40,12 @@ func NewBoard(size Size) (*Board, error) {
 }
 
 func (b *Board) ActorExists(p Point) bool {
-	return slicetools.Every(b.Actors, func(actor Actor) bool {
-		return !actor.Point.Equals(p)
-	})
+	for _, actor := range b.Actors {
+		if actor.Point.Equals(p) {
+			return true
+		}
+	}
+	return false
 }
 
 func (b *Board) PlaceActorAtRandom(color Color) error {
@@ -53,8 +54,8 @@ func (b *Board) PlaceActorAtRandom(color Color) error {
 		return fmt.Errorf("unable to find actor of color: %s", color)
 	}
 
-	pos, ok := b.RandomPlace(func(p Point) bool { return !b.ActorExists(p) })
-	if !ok {
+	pos, ok := b.RandomPlace()
+	if !ok || b.ActorExists(pos) {
 		return fmt.Errorf("unable to place actor: %s", color)
 	}
 	b.Actors[i].Point = pos
@@ -106,13 +107,13 @@ func (b *Board) Actor(color Color) (int, Actor) {
 	return -1, Actor{}
 }
 
-func (b *Board) RandomPlace(validator func(Point) bool) (p Point, ok bool) {
+func (b *Board) RandomPlace() (p Point, ok bool) {
 	for i := 0; i < 50; i++ {
 		p = Point{
 			b.rand.Intn(b.Size.W),
 			b.rand.Intn(b.Size.H),
 		}
-		if !b.Center().Contains(p) && validator(p) {
+		if !b.Center().Contains(p) {
 			return p, true
 		}
 	}
@@ -124,8 +125,8 @@ func (b *Board) RandomColor(colors []Color) Color {
 }
 
 func (b *Board) PlaceGoalAtRandom() error {
-	pos, ok := b.RandomPlace(func(p Point) bool { return !b.ActorExists(p) })
-	if !ok {
+	pos, ok := b.RandomPlace()
+	if !ok || b.ActorExists(pos) {
 		return fmt.Errorf("unable to place goal")
 	}
 	color := b.RandomColor(AllColors)
