@@ -6,6 +6,111 @@ import (
 	"github.com/fj68/hyper-tux-go/hyper"
 )
 
+func TestBoard_NextStop(t *testing.T) {
+	size := hyper.Size{16, 16}
+
+	testcases := []struct {
+		Name string
+		hyper.Actor
+		hyper.Direction
+		Walls    func(b *hyper.Board)
+		Expected hyper.Point
+	}{
+		{
+			"move north",
+			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			hyper.North,
+			func(b *hyper.Board) {
+				b.PutHWall(hyper.Point{5, 3})
+			},
+			hyper.Point{5, 3},
+		},
+		{
+			"move north and stop at the edge",
+			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			hyper.North,
+			func(b *hyper.Board) {
+				b.PutHWall(hyper.Point{5, 6})
+			},
+			hyper.Point{5, 0},
+		},
+		{
+			"move south",
+			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			hyper.South,
+			func(b *hyper.Board) {
+				b.PutHWall(hyper.Point{5, 10})
+			},
+			hyper.Point{5, 10},
+		},
+		{
+			"move south and stop at the edge",
+			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			hyper.South,
+			func(b *hyper.Board) {
+				b.PutHWall(hyper.Point{5, 5})
+			},
+			hyper.Point{5, size.H - 1},
+		},
+		{
+			"move west",
+			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			hyper.West,
+			func(b *hyper.Board) {
+				b.PutVWall(hyper.Point{3, 5})
+			},
+			hyper.Point{3, 5},
+		},
+		{
+			"move west and stop at the edge",
+			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			hyper.West,
+			func(b *hyper.Board) {
+				b.PutVWall(hyper.Point{6, 5})
+			},
+			hyper.Point{0, 5},
+		},
+		{
+			"move east",
+			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			hyper.East,
+			func(b *hyper.Board) {
+				b.PutVWall(hyper.Point{7, 5})
+			},
+			hyper.Point{7, 5},
+		},
+		{
+			"move east and stop at the edge",
+			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			hyper.East,
+			func(b *hyper.Board) {
+				b.PutVWall(hyper.Point{5, 5})
+			},
+			hyper.Point{size.W - 1, 5},
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.Name, func(t *testing.T) {
+			board, err := hyper.NewBoard(size)
+			if err != nil {
+				t.Fatal(err)
+			}
+			board.NewGame()
+
+			i, _ := board.Actor(testcase.Actor.Color)
+			board.Actors[i].Point = testcase.Actor.Point
+
+			testcase.Walls(board)
+
+			actual := board.NextStop(testcase.Actor.Point, testcase.Direction)
+			if actual != testcase.Expected {
+				t.Errorf("unexpected value: Expected = %s, Actual = %s", testcase.Expected, actual)
+			}
+		})
+	}
+}
+
 func TestBoard_MoveActor(t *testing.T) {
 	type result struct {
 		Ok       bool
@@ -22,7 +127,7 @@ func TestBoard_MoveActor(t *testing.T) {
 		Expected  result
 	}{
 		{
-			"unable to move to north",
+			"unable to move north",
 			hyper.Goal{hyper.Red, hyper.Point{3, 3}},
 			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.North,
@@ -32,7 +137,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			result{false, false, hyper.Point{5, 5}},
 		},
 		{
-			"unable to move to west",
+			"unable to move west",
 			hyper.Goal{hyper.Red, hyper.Point{3, 3}},
 			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.West,
@@ -42,7 +147,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			result{false, false, hyper.Point{5, 5}},
 		},
 		{
-			"unable to move to south",
+			"unable to move south",
 			hyper.Goal{hyper.Red, hyper.Point{3, 3}},
 			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.South,
@@ -52,7 +157,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			result{false, false, hyper.Point{5, 5}},
 		},
 		{
-			"unable to move to east",
+			"unable to move east",
 			hyper.Goal{hyper.Red, hyper.Point{3, 3}},
 			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.East,
