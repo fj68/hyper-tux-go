@@ -12,18 +12,19 @@ type HWall = []int // _ : list of row indices where the wall exists
 type Board struct {
 	rand *rand.Rand
 	Size
-	Goal
-	Counter
+	*Goal
+	*Counter
 	VWalls []VWall
 	HWalls []HWall
-	Actors []Actor
+	Actors map[Color]*Actor
 }
 
 func NewBoard(size Size) (*Board, error) {
 	b := &Board{
 		rand:   rand.New(rand.NewSource(time.Now().Unix())),
 		Size:   size,
-		Actors: make([]Actor, len(AllColors)),
+		Counter: &Counter{},
+		Actors: map[Color]*Actor{},
 		VWalls: make([]VWall, size.H),
 		HWalls: make([]HWall, size.W),
 	}
@@ -49,8 +50,8 @@ func (b *Board) ActorExists(p Point) bool {
 }
 
 func (b *Board) PlaceActorAtRandom(color Color) error {
-	i, _ := b.Actor(color)
-	if i < 0 {
+	actor, ok := b.Actors[color]
+	if !ok {
 		return fmt.Errorf("unable to find actor of color: %s", color)
 	}
 
@@ -58,7 +59,7 @@ func (b *Board) PlaceActorAtRandom(color Color) error {
 	if !ok || b.ActorExists(pos) {
 		return fmt.Errorf("unable to place actor: %s", color)
 	}
-	b.Actors[i].Point = pos
+	actor.MoveTo(pos)
 	return nil
 }
 
@@ -98,15 +99,6 @@ func (b *Board) initCenterWalls() {
 	}
 }
 
-func (b *Board) Actor(color Color) (int, Actor) {
-	for i, actor := range b.Actors {
-		if actor.Color == color {
-			return i, actor
-		}
-	}
-	return -1, Actor{}
-}
-
 func (b *Board) RandomPlace() (p Point, ok bool) {
 	for i := 0; i < 50; i++ {
 		p = Point{
@@ -130,7 +122,7 @@ func (b *Board) PlaceGoalAtRandom() error {
 		return fmt.Errorf("unable to place goal")
 	}
 	color := b.RandomColor(AllColors)
-	b.Goal = Goal{color, pos}
+	b.Goal = &Goal{color, pos}
 	return nil
 }
 
@@ -141,7 +133,10 @@ func (b *Board) NewGame() error {
 }
 
 func (b *Board) MoveActor(color Color, d Direction) (ok bool, finished bool) {
-	i, actor := b.Actor(color)
+	actor, ok := b.Actors[color]
+	if !ok {
+		return
+	}
 
 	pos := b.NextStop(actor.Point, d)
 	if actor.Point.Equals(pos) {
@@ -150,9 +145,9 @@ func (b *Board) MoveActor(color Color, d Direction) (ok bool, finished bool) {
 	}
 	ok = true
 	b.Counter.Incr()
-	b.Actors[i].Point = pos
+	actor.MoveTo(pos)
 
-	if b.Goal.Reached(b.Actors[i]) {
+	if b.Goal.Reached(actor) {
 		finished = true
 	}
 	return

@@ -11,13 +11,13 @@ func TestGoal_Reached(t *testing.T) {
 
 	testcases := []struct {
 		Name string
-		hyper.Actor
+		*hyper.Actor
 		Expected bool
 	}{
-		{"Reached", hyper.Actor{hyper.Red, hyper.Point{10, 5}}, true},
-		{"Different color", hyper.Actor{hyper.Blue, hyper.Point{10, 5}}, false},
-		{"Different row", hyper.Actor{hyper.Red, hyper.Point{10, 4}}, false},
-		{"Different column", hyper.Actor{hyper.Red, hyper.Point{9, 5}}, false},
+		{"Reached", &hyper.Actor{hyper.Red, hyper.Point{10, 5}}, true},
+		{"Different color", &hyper.Actor{hyper.Blue, hyper.Point{10, 5}}, false},
+		{"Different row", &hyper.Actor{hyper.Red, hyper.Point{10, 4}}, false},
+		{"Different column", &hyper.Actor{hyper.Red, hyper.Point{9, 5}}, false},
 	}
 
 	for _, testcase := range testcases {
