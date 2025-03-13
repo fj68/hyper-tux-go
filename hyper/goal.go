@@ -6,6 +6,7 @@ type Goal struct {
 }
 
 func (g Goal) Reached(actor Actor) bool {
-	return (g.Color == actor.Color &&
-		g.Point.Equals(actor.Point))
+	colorIsSame := g.Color == Black || g.Color == actor.Color
+	posIsSame := g.Point.Equals(actor.Point)
+	return (colorIsSame && posIsSame)
 }
