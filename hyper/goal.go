@@ -7,5 +7,5 @@ type Goal struct {
 
 func (g Goal) Reached(actor Actor) bool {
 	return (g.Color == actor.Color &&
-		actor.Point.Equals(actor.Point))
+		g.Point.Equals(actor.Point))
 }
