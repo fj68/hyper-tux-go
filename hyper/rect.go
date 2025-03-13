@@ -1,7 +1,7 @@
 package hyper
 
 type Rect struct {
-	TopLeft, BottomRight Point
+	TopLeft, BottomRight Point // BottomRight is the edge of the Rect, so will not contained. e.g. Rect{(0, 0) (5, 5)}.Contains((5, 5)) == false
 }
 
 func NewRect(topLeft Point, size Size) Rect {
@@ -20,6 +20,6 @@ func (r Rect) Size() Size {
 }
 
 func (r Rect) Contains(p Point) bool {
-	return (r.TopLeft.X <= p.X && r.BottomRight.X < p.X &&
-		r.TopLeft.Y <= p.Y && r.BottomRight.Y < p.Y)
+	return (r.TopLeft.X <= p.X && p.X < r.BottomRight.X &&
+		r.TopLeft.Y <= p.Y && p.Y < r.BottomRight.Y)
 }
