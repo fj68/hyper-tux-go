@@ -33,22 +33,32 @@ func NewBoard(size Size) (*Board, error) {
 	// place walls
 	b.initCenterWalls()
 
-	notOverlapped := func(p Point) bool {
-		return slicetools.Every(b.Actors, func(actor Actor) bool {
-			return !actor.Point.Equals(p)
-		})
-	}
-
 	// place actors
-	for i, color := range AllColors {
-		if p, ok := b.RandomPlace(notOverlapped); ok {
-			b.Actors[i].Point = p
-		} else {
-			return nil, fmt.Errorf("unable to place actor: %s", color)
-		}
+	for _, color := range AllColors {
+		b.PlaceActorAtRandom(color)
 	}
 
 	return b, nil
+}
+
+func (b *Board) ActorExists(p Point) bool {
+	return slicetools.Every(b.Actors, func(actor Actor) bool {
+		return !actor.Point.Equals(p)
+	})
+}
+
+func (b *Board) PlaceActorAtRandom(color Color) error {
+	i, _ := b.Actor(color)
+	if i < 0 {
+		return fmt.Errorf("unable to find actor of color: %s", color)
+	}
+
+	pos, ok := b.RandomPlace(func(p Point) bool { return !b.ActorExists(p) })
+	if !ok {
+		return fmt.Errorf("unable to place actor: %s", color)
+	}
+	b.Actors[i].Point = pos
+	return nil
 }
 
 func (b *Board) Center() Rect {
@@ -113,23 +123,19 @@ func (b *Board) RandomColor(colors []Color) Color {
 	return colors[b.rand.Intn(len(colors))]
 }
 
-func (b *Board) NewGame() error {
-	b.Counter.Reset()
-
-	notOverlapped := func(p Point) bool {
-		return slicetools.Every(b.Actors, func(actor Actor) bool {
-			return !actor.Point.Equals(p)
-		})
-	}
-
-	// place goal
-	if p, ok := b.RandomPlace(notOverlapped); ok {
-		b.Goal.Point = p
-	} else {
+func (b *Board) PlaceGoalAtRandom() error {
+	pos, ok := b.RandomPlace(func(p Point) bool { return !b.ActorExists(p) })
+	if !ok {
 		return fmt.Errorf("unable to place goal")
 	}
-	b.Goal.Color = b.RandomColor(AllColors)
+	color := b.RandomColor(AllColors)
+	b.Goal = Goal{color, pos}
+	return nil
+}
 
+func (b *Board) NewGame() error {
+	b.Counter.Reset()
+	b.PlaceGoalAtRandom()
 	return nil
 }
 
@@ -180,7 +186,7 @@ func (b *Board) nextStopSouth(current Point) Point {
 	walls := b.HWalls[current.X]
 	y := b.Size.H - 1
 	for _, wall := range walls {
-		if wall < y && current.Y <= wall {
+		if wall < y && current.Y+1 <= wall {
 			y = wall
 		}
 	}
@@ -202,7 +208,7 @@ func (b *Board) nextStopEast(current Point) Point {
 	walls := b.VWalls[current.Y]
 	x := b.Size.W - 1
 	for _, wall := range walls {
-		if wall < x && current.X <= wall {
+		if wall < x && current.X+1 <= wall {
 			x = wall
 		}
 	}
