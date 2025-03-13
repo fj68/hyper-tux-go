@@ -74,12 +74,13 @@ func (b *Board) PutVWall(p *Point) bool {
 
 func (b *Board) initCenterWalls() {
 	r := b.Center()
+	s := r.Size()
 
-	for x := r.TopLeft.X; x < r.BottomRight.X; x++ {
-		b.HWalls[x] = []int{r.TopLeft.Y, r.BottomRight.Y - 1}
+	for i := range s.W {
+		b.HWalls[i+r.TopLeft.X] = []int{r.TopLeft.Y, r.BottomRight.Y - 1}
 	}
-	for y := r.TopLeft.Y; y < r.BottomRight.Y; y++ {
-		b.VWalls[y] = []int{r.TopLeft.X, r.BottomRight.X - 1}
+	for i := range s.H {
+		b.VWalls[i+r.TopLeft.Y] = []int{r.TopLeft.X, r.BottomRight.X - 1}
 	}
 }
 
@@ -93,7 +94,7 @@ func (b *Board) ActorExists(p *Point) bool {
 }
 
 func (b *Board) RandomPlace() (p *Point, ok bool) {
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		p = &Point{
 			b.rand.Intn(b.Size.W),
 			b.rand.Intn(b.Size.H),
