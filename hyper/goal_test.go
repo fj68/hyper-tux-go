@@ -6,14 +6,14 @@ import (
 	"github.com/fj68/hyper-tux-go/hyper"
 )
 
-func TestGoal(t *testing.T) {
+func TestGoal_Reached(t *testing.T) {
 	goal := hyper.Goal{hyper.Red, hyper.Point{10, 5}}
-	
+
 	testcases := []struct {
 		Name string
 		hyper.Actor
 		Expected bool
-	} {
+	}{
 		{"Reached", hyper.Actor{hyper.Red, hyper.Point{10, 5}}, true},
 		{"Different color", hyper.Actor{hyper.Blue, hyper.Point{10, 5}}, false},
 		{"Different row", hyper.Actor{hyper.Red, hyper.Point{10, 4}}, false},

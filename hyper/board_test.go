@@ -6,7 +6,7 @@ import (
 	"github.com/fj68/hyper-tux-go/hyper"
 )
 
-func TestMoveActor(t *testing.T) {
+func TestBoard_MoveActor(t *testing.T) {
 	type result struct {
 		Ok       bool
 		Finished bool
