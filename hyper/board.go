@@ -56,6 +56,26 @@ func (b *Board) Center() Rect {
 	return NewRect(Point{c.X - 1, c.Y - 1}, Size{2, 2})
 }
 
+func (b *Board) PutHWall(p Point) bool {
+	for _, wall := range b.HWalls[p.X] {
+		if wall == p.Y {
+			return false
+		}
+	}
+	b.HWalls[p.X] = append(b.HWalls[p.X], p.Y)
+	return true
+}
+
+func (b *Board) PutVWall(p Point) bool {
+	for _, wall := range b.VWalls[p.Y] {
+		if wall == p.X {
+			return false
+		}
+	}
+	b.VWalls[p.Y] = append(b.VWalls[p.Y], p.X)
+	return true
+}
+
 func (b *Board) initCenterWalls() {
 	r := b.Center()
 
