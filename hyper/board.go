@@ -21,14 +21,34 @@ type Board struct {
 	Actors []Actor
 }
 
-func NewBoard(size Size) *Board {
+func NewBoard(size Size) (*Board, error) {
 	b := &Board{
+		rand:   rand.New(rand.NewSource(time.Now().Unix())),
 		Size:   size,
+		Actors: make([]Actor, len(AllColors)),
 		VWalls: make([]VWall, size.H),
 		HWalls: make([]HWall, size.W),
 	}
+
+	// place walls
 	b.initCenterWalls()
-	return b
+
+	notOverlapped := func(p Point) bool {
+		return slicetools.Every(b.Actors, func(actor Actor) bool {
+			return !actor.Point.Equals(p)
+		})
+	}
+
+	// place actors
+	for i, color := range AllColors {
+		if p, ok := b.RandomPlace(notOverlapped); ok {
+			b.Actors[i].Point = p
+		} else {
+			return nil, fmt.Errorf("unable to place actor: %s", color)
+		}
+	}
+
+	return b, nil
 }
 
 func (b *Board) Center() Rect {
@@ -74,22 +94,12 @@ func (b *Board) RandomColor(colors []Color) Color {
 }
 
 func (b *Board) NewGame() error {
-	b.rand = rand.New(rand.NewSource(time.Now().Unix()))
 	b.Counter.Reset()
 
 	notOverlapped := func(p Point) bool {
 		return slicetools.Every(b.Actors, func(actor Actor) bool {
 			return !actor.Point.Equals(p)
 		})
-	}
-
-	// place actors
-	for i := range b.Actors {
-		if p, ok := b.RandomPlace(notOverlapped); ok {
-			b.Actors[i].Point = p
-		} else {
-			return fmt.Errorf("unable to place actor: %s", b.Actors[i].Color)
-		}
 	}
 
 	// place goal
