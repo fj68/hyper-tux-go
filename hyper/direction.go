@@ -3,10 +3,10 @@ package hyper
 type Direction int
 
 const (
-	North Direction = iota
-	West
-	East
-	South
+	North Direction = 1
+	West Direction = 2
+	East Direction = 4
+	South Direction = 8
 )
 
 func (d Direction) String() string {
