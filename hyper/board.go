@@ -6,16 +6,11 @@ import (
 	"time"
 )
 
-type VWall = []int // | : list of column indices where the wall exists
-type HWall = []int // _ : list of row indices where the wall exists
-
 type Board struct {
 	rand *rand.Rand
 	*Counter
-	*Size
 	*Goal
-	VWalls       []VWall
-	HWalls       []HWall
+	*Mapdata
 	Actors       map[Color]*Actor
 	ColorWeights []int
 }
@@ -24,14 +19,9 @@ func NewBoard(size *Size) (*Board, error) {
 	b := &Board{
 		rand:    rand.New(rand.NewSource(time.Now().Unix())),
 		Counter: &Counter{},
-		Size:    size,
 		Actors:  map[Color]*Actor{},
-		VWalls:  make([]VWall, size.H),
-		HWalls:  make([]HWall, size.W),
+		Mapdata: NewMapdata(size),
 	}
-
-	// place walls
-	b.initCenterWalls()
 
 	// place actors
 	for _, color := range AllColors {
@@ -47,43 +37,6 @@ func (b *Board) NewGame() error {
 	return nil
 }
 
-func (b *Board) Center() *Rect {
-	c := b.Size.Center()
-	return NewRect(&Point{c.X - 1, c.Y - 1}, &Size{2, 2})
-}
-
-func (b *Board) PutHWall(p *Point) bool {
-	for _, wall := range b.HWalls[p.X] {
-		if wall == p.Y {
-			return false
-		}
-	}
-	b.HWalls[p.X] = append(b.HWalls[p.X], p.Y)
-	return true
-}
-
-func (b *Board) PutVWall(p *Point) bool {
-	for _, wall := range b.VWalls[p.Y] {
-		if wall == p.X {
-			return false
-		}
-	}
-	b.VWalls[p.Y] = append(b.VWalls[p.Y], p.X)
-	return true
-}
-
-func (b *Board) initCenterWalls() {
-	r := b.Center()
-	s := r.Size()
-
-	for i := range s.W {
-		b.HWalls[i+r.TopLeft.X] = []int{r.TopLeft.Y, r.BottomRight.Y - 1}
-	}
-	for i := range s.H {
-		b.VWalls[i+r.TopLeft.Y] = []int{r.TopLeft.X, r.BottomRight.X - 1}
-	}
-}
-
 func (b *Board) ActorExists(p *Point) bool {
 	for _, actor := range b.Actors {
 		if actor.Point.Equals(p) {
@@ -96,10 +49,10 @@ func (b *Board) ActorExists(p *Point) bool {
 func (b *Board) RandomPlace() (p *Point, ok bool) {
 	for range 50 {
 		p = &Point{
-			b.rand.Intn(b.Size.W),
-			b.rand.Intn(b.Size.H),
+			b.rand.Intn(b.Mapdata.Size.W),
+			b.rand.Intn(b.Mapdata.Size.H),
 		}
-		if !b.Center().Contains(p) {
+		if !b.Mapdata.Center().Contains(p) {
 			return p, true
 		}
 	}
