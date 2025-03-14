@@ -2,12 +2,8 @@ package hyper
 
 import (
 	"fmt"
-	"maps"
 	"math/rand"
-	"slices"
 	"time"
-
-	"github.com/fj68/hyper-tux-go/itertools"
 )
 
 type Board struct {
@@ -124,81 +120,109 @@ func (b *Board) NextStop(current *Point, d Direction) *Point {
 }
 
 func (b *Board) nextStopNorth(current *Point) *Point {
-	actors := itertools.FilterMap(
-		maps.Values(b.Actors),
-		func(actor *Actor) bool {
-			return actor.Point.X == current.X && actor.Y != current.Y
-		},
-		func(actor *Actor) int {
-			return actor.Point.Y
-		})
-	walls := append(b.HWalls[current.X], slices.Collect(actors)...)
-
+	// min of y-index
 	y := 0
-	for _, wall := range walls {
+
+	// find y-index of actor who is:
+	//   1. on the current column
+	//   2. nearer to the north than current
+	//   3. nearer to the current position than ever before
+	for _, actor := range b.Actors {
+		if actor.Point.X == current.X && actor.Y != current.Y && y < actor.Point.Y {
+			y = actor.Point.Y
+		}
+	}
+
+	// find y-index of wall which is:
+	//   1. on the current column
+	//   2. nearer to the west than current
+	//   3. nearer to the current position than ever before
+	for _, wall := range b.HWalls[current.X] {
 		if y < wall && wall <= current.Y {
 			y = wall
 		}
 	}
+
 	return &Point{current.X, y}
 }
 
 func (b *Board) nextStopSouth(current *Point) *Point {
-	actors := itertools.FilterMap(
-		maps.Values(b.Actors),
-		func(actor *Actor) bool {
-			return actor.Point.X == current.X && actor.Y != current.Y
-		},
-		func(actor *Actor) int {
-			return actor.Point.Y
-		})
-
-	walls := append(b.HWalls[current.X], slices.Collect(actors)...)
+	// max of x-index
 	y := b.Size.H - 1
-	for _, wall := range walls {
+
+	// find y-index of actor who is:
+	//   1. on the current column
+	//   2. nearer to the south than current
+	//   3. nearer to the current position than ever before
+	for _, actor := range b.Actors {
+		if actor.Point.X == current.X && actor.Y != current.Y && actor.Point.Y < y {
+			y = actor.Point.Y
+		}
+	}
+
+	// find y-index of wall which is:
+	//   1. on the current column
+	//   2. nearer to the south than current
+	//   3. nearer to the current position than ever before
+	for _, wall := range b.HWalls[current.X] {
 		if wall < y && current.Y+1 <= wall {
 			y = wall
 		}
 	}
+
 	return &Point{current.X, y}
 }
 
 func (b *Board) nextStopWest(current *Point) *Point {
-	actors := itertools.FilterMap(
-		maps.Values(b.Actors),
-		func(actor *Actor) bool {
-			return actor.Point.Y == current.Y && actor.X != current.X
-		},
-		func(actor *Actor) int {
-			return actor.Point.X
-		})
-
-	walls := append(b.VWalls[current.Y], slices.Collect(actors)...)
+	// min of x-index
 	x := 0
-	for _, wall := range walls {
+
+	// find x-index of actor who is:
+	//   1. on the current row
+	//   2. nearer to the west than current
+	//   3. nearer to the current position than ever before
+	for _, actor := range b.Actors {
+		if actor.Point.Y == current.Y && actor.X != current.X && x < actor.Point.X {
+			x = actor.Point.X
+		}
+	}
+
+	// find x-index of wall which is:
+	//   1. on the current row
+	//   2. nearer to the west than current
+	//   3. nearer to the current position than ever before
+	for _, wall := range b.VWalls[current.Y] {
 		if x < wall && wall <= current.X {
 			x = wall
 		}
 	}
+
 	return &Point{x, current.Y}
 }
 
 func (b *Board) nextStopEast(current *Point) *Point {
-	actors := itertools.FilterMap(
-		maps.Values(b.Actors),
-		func(actor *Actor) bool {
-			return actor.Point.Y == current.Y && actor.X != current.X
-		},
-		func(actor *Actor) int {
-			return actor.Point.X
-		})
-
-	walls := append(b.VWalls[current.Y], slices.Collect(actors)...)
+	// max of x-index
 	x := b.Size.W - 1
-	for _, wall := range walls {
+
+	// find x-index of actor who is:
+	//   1. on the current row
+	//   2. nearer to the east than current
+	//   3. nearer to the current position than ever before
+	for _, actor := range b.Actors {
+		if actor.Point.Y == current.Y && current.X+1 <= actor.Point.X && actor.Point.X < x {
+			x = actor.Point.X
+		}
+	}
+
+	// find x-index of wall which is:
+	//   1. on the current row
+	//   2. nearer to the east than current
+	//   3. nearer to the current position than ever before
+	for _, wall := range b.VWalls[current.Y] {
 		if wall < x && current.X+1 <= wall {
 			x = wall
 		}
 	}
+
 	return &Point{x, current.Y}
 }
