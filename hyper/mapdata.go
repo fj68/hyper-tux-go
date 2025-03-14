@@ -35,6 +35,10 @@ func NewMapdataFromCSV(r *csv.Reader) (*Mapdata, error) {
 		return nil, err
 	}
 
+	return NewMapdataFromSlice(rows)
+}
+
+func NewMapdataFromSlice(rows [][]string) (*Mapdata, error) {
 	if len(rows) < 1 {
 		return NewMapdata(&Size{0, 0}), nil
 	}
