@@ -35,6 +35,16 @@ func TestBoard_NextStop(t *testing.T) {
 			&hyper.Point{5, 0},
 		},
 		{
+			"move north and stop by another actor",
+			&hyper.Actor{hyper.Red, &hyper.Point{5, 5}},
+			hyper.North,
+			func(b *hyper.Board) {
+				b.PutHWall(&hyper.Point{5, 2})
+				b.Actors[hyper.Blue] = &hyper.Actor{hyper.Blue, &hyper.Point{5, 3}}
+			},
+			&hyper.Point{5, 3},
+		},
+		{
 			"move south",
 			&hyper.Actor{hyper.Red, &hyper.Point{5, 5}},
 			hyper.South,
@@ -51,6 +61,16 @@ func TestBoard_NextStop(t *testing.T) {
 				b.PutHWall(&hyper.Point{5, 5})
 			},
 			&hyper.Point{5, size.H - 1},
+		},
+		{
+			"move south and stop by another actor",
+			&hyper.Actor{hyper.Red, &hyper.Point{5, 5}},
+			hyper.South,
+			func(b *hyper.Board) {
+				b.PutHWall(&hyper.Point{5, 10})
+				b.Actors[hyper.Blue] = &hyper.Actor{hyper.Blue, &hyper.Point{5, 7}}
+			},
+			&hyper.Point{5, 7},
 		},
 		{
 			"move west",
@@ -71,6 +91,16 @@ func TestBoard_NextStop(t *testing.T) {
 			&hyper.Point{0, 5},
 		},
 		{
+			"move west and stop by another actor",
+			&hyper.Actor{hyper.Red, &hyper.Point{5, 5}},
+			hyper.West,
+			func(b *hyper.Board) {
+				b.PutVWall(&hyper.Point{2, 5})
+				b.Actors[hyper.Blue] = &hyper.Actor{hyper.Blue, &hyper.Point{3, 5}}
+			},
+			&hyper.Point{3, 5},
+		},
+		{
 			"move east",
 			&hyper.Actor{hyper.Red, &hyper.Point{5, 5}},
 			hyper.East,
@@ -88,6 +118,16 @@ func TestBoard_NextStop(t *testing.T) {
 			},
 			&hyper.Point{size.W - 1, 5},
 		},
+		{
+			"move east and stop by another actor",
+			&hyper.Actor{hyper.Red, &hyper.Point{5, 5}},
+			hyper.East,
+			func(b *hyper.Board) {
+				b.PutVWall(&hyper.Point{10, 5})
+				b.Actors[hyper.Blue] = &hyper.Actor{hyper.Blue, &hyper.Point{7, 5}}
+			},
+			&hyper.Point{7, 5},
+		},
 	}
 
 	for _, testcase := range testcases {
@@ -97,6 +137,12 @@ func TestBoard_NextStop(t *testing.T) {
 				t.Fatal(err)
 			}
 			board.NewGame()
+
+			// delete all actors and add neccessary one only
+			// because they are randomly placed and may block others accidentally
+			// which leads tests failed
+			board.Actors = map[hyper.Color]*hyper.Actor{}
+			board.Actors[testcase.Actor.Color] = testcase.Actor
 
 			actor, ok := board.Actors[testcase.Actor.Color]
 			if !ok {
@@ -118,7 +164,7 @@ func TestBoard_MoveActor(t *testing.T) {
 	type result struct {
 		Ok       bool
 		Finished bool
-		hyper.Point
+		*hyper.Point
 	}
 
 	testcases := []struct {
@@ -137,7 +183,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			func(b *hyper.Board) {
 				b.PutHWall(&hyper.Point{5, 5})
 			},
-			result{false, false, hyper.Point{5, 5}},
+			result{false, false, &hyper.Point{5, 5}},
 		},
 		{
 			"unable to move west",
@@ -147,7 +193,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			func(b *hyper.Board) {
 				b.PutVWall(&hyper.Point{5, 5})
 			},
-			result{false, false, hyper.Point{5, 5}},
+			result{false, false, &hyper.Point{5, 5}},
 		},
 		{
 			"unable to move south",
@@ -157,7 +203,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			func(b *hyper.Board) {
 				b.PutHWall(&hyper.Point{5, 5})
 			},
-			result{false, false, hyper.Point{5, 5}},
+			result{false, false, &hyper.Point{5, 5}},
 		},
 		{
 			"unable to move east",
@@ -167,7 +213,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			func(b *hyper.Board) {
 				b.PutVWall(&hyper.Point{5, 5})
 			},
-			result{false, false, hyper.Point{5, 5}},
+			result{false, false, &hyper.Point{5, 5}},
 		},
 		{
 			"reached goal",
@@ -177,7 +223,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			func(b *hyper.Board) {
 				b.PutHWall(&hyper.Point{5, 5})
 			},
-			result{true, true, hyper.Point{5, 5}},
+			result{true, true, &hyper.Point{5, 5}},
 		},
 		{
 			"reached black goal",
@@ -187,7 +233,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			func(b *hyper.Board) {
 				b.PutVWall(&hyper.Point{5, 5})
 			},
-			result{true, true, hyper.Point{5, 5}},
+			result{true, true, &hyper.Point{5, 5}},
 		},
 		{
 			"move south",
@@ -197,7 +243,7 @@ func TestBoard_MoveActor(t *testing.T) {
 			func(b *hyper.Board) {
 				b.PutHWall(&hyper.Point{5, 10})
 			},
-			result{true, false, hyper.Point{5, 10}},
+			result{true, false, &hyper.Point{5, 10}},
 		},
 	}
 

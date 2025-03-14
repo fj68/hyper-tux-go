@@ -2,8 +2,12 @@ package hyper
 
 import (
 	"fmt"
+	"maps"
 	"math/rand"
+	"slices"
 	"time"
+
+	"github.com/fj68/hyper-tux-go/itertools"
 )
 
 type Board struct {
@@ -25,6 +29,7 @@ func NewBoard(size *Size) (*Board, error) {
 
 	// place actors
 	for _, color := range AllColors {
+		b.Actors[color] = &Actor{Color: color, Point: &Point{0, 0}}
 		b.PlaceActorAtRandom(color)
 	}
 
@@ -119,7 +124,16 @@ func (b *Board) NextStop(current *Point, d Direction) *Point {
 }
 
 func (b *Board) nextStopNorth(current *Point) *Point {
-	walls := b.HWalls[current.X]
+	actors := itertools.FilterMap(
+		maps.Values(b.Actors),
+		func(actor *Actor) bool {
+			return actor.Point.X == current.X && actor.Y != current.Y
+		},
+		func(actor *Actor) int {
+			return actor.Point.Y
+		})
+	walls := append(b.HWalls[current.X], slices.Collect(actors)...)
+
 	y := 0
 	for _, wall := range walls {
 		if y < wall && wall <= current.Y {
@@ -130,7 +144,16 @@ func (b *Board) nextStopNorth(current *Point) *Point {
 }
 
 func (b *Board) nextStopSouth(current *Point) *Point {
-	walls := b.HWalls[current.X]
+	actors := itertools.FilterMap(
+		maps.Values(b.Actors),
+		func(actor *Actor) bool {
+			return actor.Point.X == current.X && actor.Y != current.Y
+		},
+		func(actor *Actor) int {
+			return actor.Point.Y
+		})
+
+	walls := append(b.HWalls[current.X], slices.Collect(actors)...)
 	y := b.Size.H - 1
 	for _, wall := range walls {
 		if wall < y && current.Y+1 <= wall {
@@ -141,7 +164,16 @@ func (b *Board) nextStopSouth(current *Point) *Point {
 }
 
 func (b *Board) nextStopWest(current *Point) *Point {
-	walls := b.VWalls[current.Y]
+	actors := itertools.FilterMap(
+		maps.Values(b.Actors),
+		func(actor *Actor) bool {
+			return actor.Point.Y == current.Y && actor.X != current.X
+		},
+		func(actor *Actor) int {
+			return actor.Point.X
+		})
+
+	walls := append(b.VWalls[current.Y], slices.Collect(actors)...)
 	x := 0
 	for _, wall := range walls {
 		if x < wall && wall <= current.X {
@@ -152,7 +184,16 @@ func (b *Board) nextStopWest(current *Point) *Point {
 }
 
 func (b *Board) nextStopEast(current *Point) *Point {
-	walls := b.VWalls[current.Y]
+	actors := itertools.FilterMap(
+		maps.Values(b.Actors),
+		func(actor *Actor) bool {
+			return actor.Point.Y == current.Y && actor.X != current.X
+		},
+		func(actor *Actor) int {
+			return actor.Point.X
+		})
+
+	walls := append(b.VWalls[current.Y], slices.Collect(actors)...)
 	x := b.Size.W - 1
 	for _, wall := range walls {
 		if wall < x && current.X+1 <= wall {
