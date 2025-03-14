@@ -9,11 +9,11 @@ import (
 func TestEvery(t *testing.T) {
 	testdata := []int{1, 2, 3, 4, 5}
 
-	isLessThanTen := func(n int) bool {
+	isLessThanTen := func(_ int, n int) bool {
 		return n < 10
 	}
 
-	isEven := func(n int) bool {
+	isEven := func(_ int, n int) bool {
 		return n%2 == 0
 	}
 
@@ -29,11 +29,11 @@ func TestEvery(t *testing.T) {
 func TestSome(t *testing.T) {
 	testdata := []int{1, 2, 3, 4, 5}
 
-	isLessThanZero := func(n int) bool {
+	isLessThanZero := func(_ int, n int) bool {
 		return n < 0
 	}
 
-	isEven := func(n int) bool {
+	isEven := func(_ int, n int) bool {
 		return n%2 == 0
 	}
 
