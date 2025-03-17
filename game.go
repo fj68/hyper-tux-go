@@ -7,10 +7,22 @@ import (
 )
 
 type Game struct {
+	StateMachine
 	*hyper.Board
-	*SwipeEventDispatcher
+	SwipeEventDispatcher
 	Actions []Action
 	Records []*ActionRecord
+}
+
+func NewGame(size hyper.Size) (*Game, error) {
+	board, err := hyper.NewBoard(size)
+	if err != nil {
+		return nil, err
+	}
+	return &Game{
+		Board:                board,
+		SwipeEventDispatcher: NewSwipeEventDispather(),
+	}, nil
 }
 
 func (g *Game) handleInput() error {
