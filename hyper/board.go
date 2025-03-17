@@ -8,24 +8,24 @@ import (
 
 type Board struct {
 	rand *rand.Rand
-	*Counter
-	*Goal
+	Counter
+	Goal
 	*Mapdata
-	Actors       map[Color]*Actor
+	Actors       map[Color]Actor
 	ColorWeights []int
 }
 
-func NewBoard(size *Size) (*Board, error) {
+func NewBoard(size Size) (*Board, error) {
 	b := &Board{
 		rand:    rand.New(rand.NewSource(time.Now().Unix())),
-		Counter: &Counter{},
-		Actors:  map[Color]*Actor{},
+		Counter: Counter{},
+		Actors:  map[Color]Actor{},
 		Mapdata: NewMapdata(size),
 	}
 
 	// place actors
 	for _, color := range AllColors {
-		b.Actors[color] = &Actor{Color: color, Point: &Point{0, 0}}
+		b.Actors[color] = Actor{Color: color, Point: Point{0, 0}}
 		b.PlaceActorAtRandom(color)
 	}
 
@@ -38,7 +38,7 @@ func (b *Board) NewGame() error {
 	return nil
 }
 
-func (b *Board) ActorExists(p *Point) bool {
+func (b *Board) ActorExists(p Point) bool {
 	for _, actor := range b.Actors {
 		if actor.Point.Equals(p) {
 			return true
@@ -47,9 +47,9 @@ func (b *Board) ActorExists(p *Point) bool {
 	return false
 }
 
-func (b *Board) RandomPlace() (p *Point, ok bool) {
+func (b *Board) RandomPlace() (p Point, ok bool) {
 	for range 50 {
-		p = &Point{
+		p = Point{
 			b.rand.Intn(b.Mapdata.Size.W),
 			b.rand.Intn(b.Mapdata.Size.H),
 		}
@@ -80,7 +80,7 @@ func (b *Board) PlaceGoalAtRandom() error {
 		return fmt.Errorf("unable to place goal")
 	}
 	color := RandomColor()
-	b.Goal = &Goal{color, pos}
+	b.Goal = Goal{color, pos}
 	return nil
 }
 
@@ -105,7 +105,7 @@ func (b *Board) MoveActor(color Color, d Direction) (ok bool, finished bool) {
 	return
 }
 
-func (b *Board) NextStop(current *Point, d Direction) *Point {
+func (b *Board) NextStop(current Point, d Direction) Point {
 	switch d {
 	case North:
 		return b.nextStopNorth(current)
@@ -116,10 +116,10 @@ func (b *Board) NextStop(current *Point, d Direction) *Point {
 	case East:
 		return b.nextStopEast(current)
 	}
-	return nil
+	return Point{}
 }
 
-func (b *Board) nextStopNorth(current *Point) *Point {
+func (b *Board) nextStopNorth(current Point) Point {
 	// min of y-index
 	y := 0
 
@@ -143,10 +143,10 @@ func (b *Board) nextStopNorth(current *Point) *Point {
 		}
 	}
 
-	return &Point{current.X, y}
+	return Point{current.X, y}
 }
 
-func (b *Board) nextStopSouth(current *Point) *Point {
+func (b *Board) nextStopSouth(current Point) Point {
 	// max of x-index
 	y := b.Size.H - 1
 
@@ -170,10 +170,10 @@ func (b *Board) nextStopSouth(current *Point) *Point {
 		}
 	}
 
-	return &Point{current.X, y}
+	return Point{current.X, y}
 }
 
-func (b *Board) nextStopWest(current *Point) *Point {
+func (b *Board) nextStopWest(current Point) Point {
 	// min of x-index
 	x := 0
 
@@ -197,12 +197,12 @@ func (b *Board) nextStopWest(current *Point) *Point {
 		}
 	}
 
-	return &Point{x, current.Y}
+	return Point{x, current.Y}
 }
 
-func (b *Board) nextStopEast(current *Point) *Point {
+func (b *Board) nextStopEast(current Point) Point {
 	// max of x-index
-	x := b.Size.W - 1
+	x := b.Mapdata.Size.W - 1
 
 	// find x-index of actor who is:
 	//   1. on the current row
@@ -224,5 +224,5 @@ func (b *Board) nextStopEast(current *Point) *Point {
 		}
 	}
 
-	return &Point{x, current.Y}
+	return Point{x, current.Y}
 }
