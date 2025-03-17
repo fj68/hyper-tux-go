@@ -12,6 +12,20 @@ type SwipeEvent struct {
 	Start, End hyper.Point
 }
 
+func (e *SwipeEvent) Direction() hyper.Direction {
+	distance := e.End.Sub(e.Start)
+	if distance.Abs().X > distance.Abs().Y {
+		if distance.X < 0 {
+			return hyper.West
+		}
+		return hyper.East
+	}
+	if distance.Y < 0 {
+		return hyper.North
+	}
+	return hyper.South
+}
+
 type SwipeEventDispatcher struct {
 	q     *list.List // of SwipeEvent
 	id    ebiten.TouchID

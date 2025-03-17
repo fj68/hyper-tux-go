@@ -38,13 +38,13 @@ func (b *Board) NewGame() error {
 	return nil
 }
 
-func (b *Board) ActorExists(p Point) bool {
+func (b *Board) ActorAt(p Point) (Actor, bool) {
 	for _, actor := range b.Actors {
 		if actor.Point.Equals(p) {
-			return true
+			return actor, true
 		}
 	}
-	return false
+	return Actor{}, false
 }
 
 func (b *Board) RandomPlace() (p Point, ok bool) {
@@ -68,7 +68,8 @@ func (b *Board) PlaceActorAtRandom(color Color) error {
 	}
 
 	pos, ok := b.RandomPlace()
-	if !ok || b.ActorExists(pos) {
+	actor, exists := b.ActorAt(pos)
+	if !ok || !exists {
 		return fmt.Errorf("unable to place actor: %s", color)
 	}
 	actor.MoveTo(pos)
@@ -77,7 +78,8 @@ func (b *Board) PlaceActorAtRandom(color Color) error {
 
 func (b *Board) PlaceGoalAtRandom() error {
 	pos, ok := b.RandomPlace()
-	if !ok || b.ActorExists(pos) {
+	_, exists := b.ActorAt(pos)
+	if !ok || !exists {
 		return fmt.Errorf("unable to place goal")
 	}
 	color := RandomColor()
@@ -85,13 +87,8 @@ func (b *Board) PlaceGoalAtRandom() error {
 	return nil
 }
 
-func (b *Board) MoveActor(color Color, d Direction) (ok bool, finished bool) {
-	actor, ok := b.Actors[color]
-	if !ok {
-		return
-	}
-
-	pos := b.NextStop(actor.Point, d)
+func (b *Board) MoveActor(actor Actor, d Direction) (pos Point, ok bool, finished bool) {
+	pos = b.NextStop(actor.Point, d)
 	if actor.Point.Equals(pos) {
 		// unable to move to the direction
 		return
