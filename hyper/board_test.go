@@ -265,7 +265,7 @@ func TestBoard_MoveActor(t *testing.T) {
 
 			testcase.Walls(board)
 
-			ok, finished := board.MoveActor(testcase.Actor, testcase.Direction)
+			_, ok, finished := board.MoveActor(testcase.Actor, testcase.Direction)
 
 			if testcase.Expected.Ok != ok {
 				t.Errorf("unexpected return value ok: Actor = %s, Goal = %s", actor, board.Goal)
