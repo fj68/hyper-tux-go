@@ -22,6 +22,14 @@ func Some[T any](xs []T, f func(int, T) bool) bool {
 	return false
 }
 
+func Map[T, U any](xs []T, f func(T) U) []U {
+	rs := make([]U, len(xs))
+	for i, x := range xs {
+		rs[i] = f(x)
+	}
+	return rs
+}
+
 func FoldLeft[T any, U any](xs []T, init U, f func(U, int, T) U) U {
 	r := init
 	for i, x := range xs {
