@@ -27,27 +27,17 @@ func (g *Game) handleInput() error {
 		if !ok {
 			return fmt.Errorf("")
 		}
-		g.Actions = append(g.Actions, &MoveAction{actor, e.Direction()})
+		action := MoveAction{actor, e.Direction()}
+		if r := action.Perform(g); r != nil {
+			g.Records = append(g.Records, r)
+		}
 	}
 
 	return nil
 }
 
-func (g *Game) handleActions() error {
-	for _, action := range g.Actions {
-		r := action.Perform(g)
-		if r != nil {
-			g.Records = append(g.Records, r)
-		}
-	}
-}
-
 func (g *Game) Update() error {
 	if err := g.handleInput(); err != nil {
-		return err
-	}
-
-	if err := g.handleActions(); err != nil {
 		return err
 	}
 
