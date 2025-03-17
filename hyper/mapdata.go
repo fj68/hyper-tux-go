@@ -3,23 +3,32 @@ package hyper
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"strconv"
+
+	"github.com/fj68/hyper-tux-go/set"
+	"github.com/fj68/hyper-tux-go/slicetools"
 )
 
-type VWall = []int // | : list of column indices where the wall exists
-type HWall = []int // _ : list of row indices where the wall exists
+// walls
+// - - - - - -
+// -|-|-|-|-|-
+// -|-|-|-|-|-
+// - - - - - -
 
 type Mapdata struct {
-	*Size
-	HWalls []HWall
-	VWalls []VWall
+	Size
+	HWalls []set.Set[int]
+	VWalls []set.Set[int]
 }
 
-func NewMapdata(size *Size) *Mapdata {
+func NewMapdata(size Size) *Mapdata {
+	cells := make([][]Direction, size.H)
+	for i := range cells {
+		cells[i] = make([]Direction, size.W)
+	}
 	m := &Mapdata{
-		Size:   size,
-		VWalls: make([]VWall, size.H),
-		HWalls: make([]HWall, size.W),
+		Size: size,
 	}
 
 	// place center walls
@@ -30,34 +39,45 @@ func NewMapdata(size *Size) *Mapdata {
 
 // each cell represents wall by int of (0|North|West)
 func NewMapdataFromCSV(r *csv.Reader) (*Mapdata, error) {
-	rows, err := r.ReadAll()
-	if err != nil {
-		return nil, err
-	}
+	values := [][]int{}
 
-	return NewMapdataFromSlice(rows)
-}
+	for y := 0; ; y++ {
+		row, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
 
-func NewMapdataFromSlice(rows [][]string) (*Mapdata, error) {
-	if len(rows) < 1 {
-		return NewMapdata(&Size{0, 0}), nil
-	}
+		values[y] = []int{}
 
-	size := &Size{W: len(rows[0]), H: len(rows)}
-	m := NewMapdata(size)
-
-	for y, fields := range rows {
-		for x, field := range fields {
+		for x, field := range row {
 			n, err := strconv.Atoi(field)
 			if err != nil {
 				return nil, fmt.Errorf("error at L%dC%d: %w", y, x, err)
 			}
+			values[y][x] = n
+		}
+	}
 
+	return NewMapdataFromSlice(values)
+}
+
+func NewMapdataFromSlice(rows [][]int) (*Mapdata, error) {
+	if len(rows) < 1 {
+		return NewMapdata(Size{0, 0}), nil
+	}
+
+	m := NewMapdata(Size{W: len(rows[0]), H: len(rows)})
+
+	for y, row := range rows {
+		for x, n := range row {
 			if (n & int(North)) != 0 {
-				m.PutHWall(&Point{x, y})
+				m.PutHWall(Point{x, y})
 			}
 			if (n & int(West)) != 0 {
-				m.PutVWall(&Point{x, y})
+				m.PutVWall(Point{x, y})
 			}
 		}
 	}
@@ -65,39 +85,40 @@ func NewMapdataFromSlice(rows [][]string) (*Mapdata, error) {
 	return m, nil
 }
 
-func (m *Mapdata) PutHWall(p *Point) bool {
-	for _, wall := range m.HWalls[p.X] {
-		if wall == p.Y {
-			return false
-		}
-	}
-	m.HWalls[p.X] = append(m.HWalls[p.X], p.Y)
-	return true
+func (m *Mapdata) PutHWall(p Point) {
+	m.HWalls[p.X].Add(p.Y)
 }
 
-func (m *Mapdata) PutVWall(p *Point) bool {
-	for _, wall := range m.VWalls[p.Y] {
-		if wall == p.X {
-			return false
-		}
-	}
-	m.VWalls[p.Y] = append(m.VWalls[p.Y], p.X)
-	return true
+func (m *Mapdata) PutVWall(p Point) {
+	m.VWalls[p.Y].Add(p.X)
 }
 
-func (m *Mapdata) Center() *Rect {
+func (m *Mapdata) Center() Rect {
 	c := m.Size.Center()
-	return NewRect(&Point{c.X - 1, c.Y - 1}, &Size{2, 2})
+	return NewRect(Point{c.X - 1, c.Y - 1}, Size{2, 2})
 }
 
 func (m *Mapdata) initCenterWalls() {
 	r := m.Center()
-	s := r.Size()
 
-	for i := range s.W {
-		m.HWalls[i+r.TopLeft.X] = []int{r.TopLeft.Y, r.BottomRight.Y - 1}
+	m.PutHWall(Point{r.TopLeft.X, r.TopLeft.Y})
+	m.PutVWall(Point{r.TopLeft.X, r.TopLeft.Y})
+	m.PutHWall(Point{r.TopLeft.X, r.BottomRight.Y + 1})
+	m.PutVWall(Point{r.TopLeft.X + 1, r.BottomRight.Y + 1})
+	m.PutHWall(Point{r.BottomRight.X, r.TopLeft.Y})
+	m.PutVWall(Point{r.BottomRight.X, r.TopLeft.Y + 1})
+	m.PutHWall(Point{r.BottomRight.X, r.BottomRight.Y + 1})
+	m.PutVWall(Point{r.BottomRight.X + 1, r.BottomRight.Y + 1})
+}
+
+func (m *Mapdata) Equals(other *Mapdata) bool {
+	intSetEquals := func(a, b set.Set[int]) bool {
+		return a.Equals(b)
 	}
-	for i := range s.H {
-		m.VWalls[i+r.TopLeft.Y] = []int{r.TopLeft.X, r.BottomRight.X - 1}
-	}
+
+	isSizeEqual := m.Size.Equals(other.Size)
+	isHWallsEqual := slicetools.EqualsFunc(m.HWalls, other.HWalls, intSetEquals)
+	isVWallsEqual := slicetools.EqualsFunc(m.VWalls, other.VWalls, intSetEquals)
+
+	return isSizeEqual && isHWallsEqual && isVWallsEqual
 }

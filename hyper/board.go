@@ -53,7 +53,8 @@ func (b *Board) RandomPlace() (p Point, ok bool) {
 			b.rand.Intn(b.Mapdata.Size.W),
 			b.rand.Intn(b.Mapdata.Size.H),
 		}
-		if !b.Mapdata.Center().Contains(p) {
+		c := b.Mapdata.Center()
+		if !c.Contains(p) {
 			return p, true
 		}
 	}
@@ -137,7 +138,7 @@ func (b *Board) nextStopNorth(current Point) Point {
 	//   1. on the current column
 	//   2. nearer to the west than current
 	//   3. nearer to the current position than ever before
-	for _, wall := range b.HWalls[current.X] {
+	for wall := range b.HWalls[current.X] {
 		if y < wall && wall <= current.Y {
 			y = wall
 		}
@@ -164,7 +165,7 @@ func (b *Board) nextStopSouth(current Point) Point {
 	//   1. on the current column
 	//   2. nearer to the south than current
 	//   3. nearer to the current position than ever before
-	for _, wall := range b.HWalls[current.X] {
+	for wall := range b.HWalls[current.X] {
 		if wall < y && current.Y+1 <= wall {
 			y = wall
 		}
@@ -191,7 +192,7 @@ func (b *Board) nextStopWest(current Point) Point {
 	//   1. on the current row
 	//   2. nearer to the west than current
 	//   3. nearer to the current position than ever before
-	for _, wall := range b.VWalls[current.Y] {
+	for wall := range b.VWalls[current.Y] {
 		if x < wall && wall <= current.X {
 			x = wall
 		}
@@ -218,7 +219,7 @@ func (b *Board) nextStopEast(current Point) Point {
 	//   1. on the current row
 	//   2. nearer to the east than current
 	//   3. nearer to the current position than ever before
-	for _, wall := range b.VWalls[current.Y] {
+	for wall := range b.VWalls[current.Y] {
 		if wall < x && current.X+1 <= wall {
 			x = wall
 		}
