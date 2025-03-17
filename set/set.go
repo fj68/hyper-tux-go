@@ -32,3 +32,15 @@ func (s Set[T]) Values() iter.Seq[T] {
 func (s Set[T]) Collect() []T {
 	return slices.Collect(maps.Keys(s))
 }
+
+func (s Set[T]) Equals(other Set[T]) bool {
+	if s.Len() != other.Len() {
+		return false
+	}
+	for a := range s {
+		if !other.Contains(a) {
+			return false
+		}
+	}
+	return true
+}
