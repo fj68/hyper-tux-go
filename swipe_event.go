@@ -4,6 +4,7 @@ import (
 	"container/list"
 
 	"github.com/fj68/hyper-tux-go/hyper"
+	"github.com/fj68/hyper-tux-go/set"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -26,56 +27,118 @@ func (e *SwipeEvent) Direction() hyper.Direction {
 	return hyper.South
 }
 
-type SwipeEventDispatcher struct {
-	q     *list.List // of SwipeEvent
-	id    ebiten.TouchID
-	start hyper.Point
+type SwipeEventHandler interface {
+	HandlePressed() bool
+	HandleReleased() *SwipeEvent
 }
 
-func NewSwipeEventDispather() SwipeEventDispatcher {
-	return SwipeEventDispatcher{
+type SwipeEventDispatcher struct {
+	q              *list.List // of *SwipeEvent
+	EventHandlers  set.Set[SwipeEventHandler]
+	currentHandler SwipeEventHandler
+}
+
+func NewSwipeEventDispather() *SwipeEventDispatcher {
+	return &SwipeEventDispatcher{
 		q: list.New(),
 	}
 }
 
-func (d *SwipeEventDispatcher) handleTouchPressed() error {
-	touchIDs := inpututil.AppendJustPressedTouchIDs([]ebiten.TouchID{})
-	for _, touchID := range touchIDs {
-		// handle only first input
-		if touchID == 0 || touchID == d.id {
-			x, y := ebiten.TouchPosition(touchID)
-			d.id = touchID
-			d.start = hyper.Point{X: x, Y: y}
-			break
-		}
+func (d *SwipeEventDispatcher) Update() error {
+	if d.currentHandler == nil {
+		d.handlePressed()
+	} else {
+		d.handleReleased()
 	}
 	return nil
 }
 
-func (d *SwipeEventDispatcher) Update() error {
-	touchIDs := inpututil.AppendJustReleasedTouchIDs([]ebiten.TouchID{})
-	for _, touchID := range touchIDs {
-		if touchID == d.id {
-			x, y := ebiten.TouchPosition(touchID)
-			end := hyper.Point{X: x, Y: y}
-			d.id = 0
-			d.q.PushBack(SwipeEvent{Start: d.start, End: end})
+func (d *SwipeEventDispatcher) handlePressed() {
+	for handler := range d.EventHandlers {
+		if handler.HandlePressed() {
+			d.currentHandler = handler
 			break
 		}
 	}
-	return nil
+	return
+}
+
+func (d *SwipeEventDispatcher) handleReleased() {
+	if e := d.currentHandler.HandleReleased(); e != nil {
+		d.q.PushBack(e)
+	}
 }
 
 func (d *SwipeEventDispatcher) Len() int {
 	return d.q.Len()
 }
 
-func (d *SwipeEventDispatcher) Pop() (SwipeEvent, bool) {
+func (d *SwipeEventDispatcher) Pop() *SwipeEvent {
 	front := d.q.Front()
 	if front == nil {
-		return SwipeEvent{}, false
+		return nil
 	}
 	v := d.q.Remove(front)
-	e, ok := v.(SwipeEvent)
-	return e, ok
+	e, ok := v.(*SwipeEvent)
+	if !ok {
+		return nil
+	}
+	return e
+}
+
+type MouseEventHandler struct {
+	start hyper.Point
+}
+
+func (h *MouseEventHandler) HandlePressed() bool {
+	if !inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		return false
+	}
+	x, y := ebiten.CursorPosition()
+	h.start = hyper.Point{X: x, Y: y}
+	return true
+}
+
+func (h *MouseEventHandler) HandleReleased() *SwipeEvent {
+	if !inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		return nil
+	}
+	x, y := ebiten.CursorPosition()
+	end := hyper.Point{X: x, Y: y}
+	if h.start.Equals(end) {
+		return nil
+	}
+	return &SwipeEvent{h.start, end}
+}
+
+type TouchEventHandler struct {
+	start hyper.Point
+	id    ebiten.TouchID
+}
+
+func (h *TouchEventHandler) HandlePressed() bool {
+	touchIDs := inpututil.AppendJustPressedTouchIDs([]ebiten.TouchID{})
+	if len(touchIDs) < 1 {
+		return false
+	}
+	// handle only first input
+	x, y := ebiten.TouchPosition(touchIDs[0])
+	h.id = touchIDs[0]
+	h.start = hyper.Point{X: x, Y: y}
+	return true
+}
+
+func (h *TouchEventHandler) HandleReleased() *SwipeEvent {
+	touchIDs := inpututil.AppendJustReleasedTouchIDs([]ebiten.TouchID{})
+	for _, touchID := range touchIDs {
+		if touchID == h.id {
+			x, y := ebiten.TouchPosition(touchID)
+			end := hyper.Point{X: x, Y: y}
+			if h.start.Equals(end) {
+				return nil
+			}
+			return &SwipeEvent{h.start, end}
+		}
+	}
+	return nil
 }

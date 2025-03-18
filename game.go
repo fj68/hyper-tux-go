@@ -4,35 +4,35 @@ import (
 	"fmt"
 
 	"github.com/fj68/hyper-tux-go/hyper"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Game struct {
-	StateMachine
+type GameState struct {
 	*hyper.Board
-	SwipeEventDispatcher
+	*SwipeEventDispatcher
 	Actions []Action
 	Records []*ActionRecord
 }
 
-func NewGame(size hyper.Size) (*Game, error) {
+func NewGameState(size hyper.Size) (*GameState, error) {
 	board, err := hyper.NewBoard(size)
 	if err != nil {
 		return nil, err
 	}
-	return &Game{
+	return &GameState{
 		Board:                board,
 		SwipeEventDispatcher: NewSwipeEventDispather(),
 	}, nil
 }
 
-func (g *Game) handleInput() error {
+func (g *GameState) handleInput() error {
 	if err := g.SwipeEventDispatcher.Update(); err != nil {
 		return err
 	}
 
 	for g.SwipeEventDispatcher.Len() > 0 {
-		e, ok := g.SwipeEventDispatcher.Pop()
-		if !ok {
+		e := g.SwipeEventDispatcher.Pop()
+		if e == nil {
 			return fmt.Errorf("")
 		}
 		actor, ok := g.Board.ActorAt(e.Start)
@@ -48,10 +48,12 @@ func (g *Game) handleInput() error {
 	return nil
 }
 
-func (g *Game) Update() error {
+func (g *GameState) Update() error {
 	if err := g.handleInput(); err != nil {
 		return err
 	}
 
 	return nil
 }
+
+func (g *GameState) Draw(screen *ebiten.Image) {}
