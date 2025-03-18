@@ -4,7 +4,6 @@ import (
 	"container/list"
 
 	"github.com/fj68/hyper-tux-go/hyper"
-	"github.com/fj68/hyper-tux-go/set"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -34,13 +33,14 @@ type SwipeEventHandler interface {
 
 type SwipeEventDispatcher struct {
 	q              *list.List // of *SwipeEvent
-	EventHandlers  set.Set[SwipeEventHandler]
+	EventHandlers  []SwipeEventHandler
 	currentHandler SwipeEventHandler
 }
 
-func NewSwipeEventDispather() *SwipeEventDispatcher {
+func NewSwipeEventDispather(handlers ...SwipeEventHandler) *SwipeEventDispatcher {
 	return &SwipeEventDispatcher{
-		q: list.New(),
+		q:             list.New(),
+		EventHandlers: handlers,
 	}
 }
 
@@ -54,7 +54,7 @@ func (d *SwipeEventDispatcher) Update() error {
 }
 
 func (d *SwipeEventDispatcher) handlePressed() {
-	for handler := range d.EventHandlers {
+	for _, handler := range d.EventHandlers {
 		if handler.HandlePressed() {
 			d.currentHandler = handler
 			break
