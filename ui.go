@@ -92,5 +92,15 @@ func createUI(b *hyper.Board) (*ebitenui.UI, error) {
 	}
 	buttonGroup.AddChild(redoButton)
 
+	newGameButton, err := createButton("New Game", func(args *widget.ButtonClickedEventArgs) {
+		if err := b.NewGame(); err != nil {
+			log.Println(err)
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+	buttonGroup.AddChild(newGameButton)
+
 	return ui, nil
 }
