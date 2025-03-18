@@ -19,7 +19,6 @@ func TestHistoryUndo(t *testing.T) {
 			Direction: hyper.East,
 			Start:     hyper.Point{5, 5},
 			End:       hyper.Point{10, 5},
-			Goaled:    false,
 		}
 		h := &hyper.History{}
 		h.Push(r)
@@ -46,7 +45,6 @@ func TestHistoryRedo(t *testing.T) {
 			Direction: hyper.East,
 			Start:     hyper.Point{5, 5},
 			End:       hyper.Point{10, 5},
-			Goaled:    false,
 		}
 		h := &hyper.History{}
 		h.Push(r)

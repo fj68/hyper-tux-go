@@ -52,6 +52,10 @@ func (b *Board) NewGame() error {
 	return nil
 }
 
+func (b *Board) Steps() int {
+	return b.history.Len()
+}
+
 func (b *Board) ActorAt(p Point) (actor *Actor, exists bool) {
 	for _, actor = range b.Actors {
 		if actor.Point.Equals(p) {
@@ -96,7 +100,7 @@ func (b *Board) PlaceGoalAtRandom() error {
 	for range 50 {
 		pos, ok := b.RandomPlace()
 		_, exists := b.ActorAt(pos)
-		if ok && !exists {
+		if ok && !exists && !pos.Equals(b.Goal.Point) {
 			color := RandomColor()
 			b.Goal = Goal{color, pos}
 			return nil
@@ -123,7 +127,14 @@ func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool) {
 	if b.Goal.Reached(*actor) {
 		b.Goaled = true
 	}
+
 	return
+}
+
+func (b *Board) Reset() {
+	for b.history.Len() > 0 {
+		b.Undo()
+	}
 }
 
 func (b *Board) Undo() {
@@ -132,7 +143,7 @@ func (b *Board) Undo() {
 		return
 	}
 	b.Actors[r.Color].Point = r.Start
-	b.Goaled = r.Goaled
+	b.Goaled = false
 }
 
 func (b *Board) Redo() {
@@ -141,7 +152,9 @@ func (b *Board) Redo() {
 		return
 	}
 	b.Actors[r.Color].Point = r.End
-	b.Goaled = r.Goaled
+	if b.Goal.Reached(*b.Actors[r.Color]) {
+		b.Goaled = true
+	}
 }
 
 func (b *Board) NextStop(current Point, d Direction) Point {
