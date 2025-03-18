@@ -7,7 +7,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/fj68/hyper-tux-go/slicetools"
+	"github.com/fj68/hyper-tux-go/internal/slicetools"
 )
 
 type Board struct {

@@ -6,7 +6,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/fj68/hyper-tux-go/slicetools"
+	"github.com/fj68/hyper-tux-go/internal/slicetools"
 	"golang.org/x/exp/slices"
 )
 

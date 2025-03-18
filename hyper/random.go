@@ -3,7 +3,7 @@ package hyper
 import (
 	"math/rand"
 
-	"github.com/fj68/hyper-tux-go/slicetools"
+	"github.com/fj68/hyper-tux-go/internal/slicetools"
 )
 
 // weighted random choice using linear scan algorithm
