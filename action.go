@@ -12,7 +12,7 @@ type Action interface {
 }
 
 type MoveAction struct {
-	hyper.Actor
+	*hyper.Actor
 	hyper.Direction
 }
 

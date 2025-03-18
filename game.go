@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"image/color"
+	"log"
 
 	"github.com/fj68/hyper-tux-go/hyper"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type GameState struct {
@@ -19,9 +22,17 @@ func NewGameState(size hyper.Size) (*GameState, error) {
 	if err != nil {
 		return nil, err
 	}
+	// debug
+	board.Actors[hyper.Black].Point = hyper.Point{X: 0, Y: 0}
+	for _, actor := range board.Actors {
+		log.Println(actor)
+	}
 	return &GameState{
-		Board:                board,
-		SwipeEventDispatcher: NewSwipeEventDispather(&MouseEventHandler{}, &TouchEventHandler{}),
+		Board: board,
+		SwipeEventDispatcher: NewSwipeEventDispather(
+			&MouseEventHandler{},
+			&TouchEventHandler{},
+		),
 	}, nil
 }
 
@@ -33,11 +44,12 @@ func (g *GameState) handleInput() error {
 	for g.SwipeEventDispatcher.Len() > 0 {
 		e := g.SwipeEventDispatcher.Pop()
 		if e == nil {
-			return fmt.Errorf("")
+			return fmt.Errorf("SwipeEvent is nil")
 		}
 		actor, ok := g.Board.ActorAt(e.Start)
 		if !ok {
-			return fmt.Errorf("")
+			// TODO: this should not be an error
+			return fmt.Errorf("No actor at %+v", e.Start)
 		}
 		action := MoveAction{actor, e.Direction()}
 		if r := action.Perform(g); r != nil {
@@ -56,4 +68,47 @@ func (g *GameState) Update() error {
 	return nil
 }
 
-func (g *GameState) Draw(screen *ebiten.Image) {}
+func (g *GameState) Draw(screen *ebiten.Image) {
+	vector.DrawFilledRect(screen, 0, 0, float32(g.W)*CELL_SIZE, float32(g.H)*CELL_SIZE, color.White, false)
+	g.drawBoard(screen)
+	g.drawActors(screen)
+}
+
+func (g *GameState) drawBoard(screen *ebiten.Image) {
+	lineColor := color.Gray{200}
+	// lines
+	for y := range g.Board.H - 1 {
+		vector.StrokeLine(screen, 0, float32(y+1)*CELL_SIZE, float32(g.Board.W)*CELL_SIZE, float32(y+1)*CELL_SIZE, 1, lineColor, false)
+	}
+	for x := range g.Board.W - 1 {
+		vector.StrokeLine(screen, float32(x+1)*CELL_SIZE, 0, float32(x+1)*CELL_SIZE, float32(g.Board.H)*CELL_SIZE, 1, lineColor, false)
+	}
+	// walls
+	for y, rows := range g.Board.VWalls {
+		for _, x := range rows {
+			vector.StrokeLine(screen, float32(x)*CELL_SIZE, float32(y)*CELL_SIZE, float32(x)*CELL_SIZE, float32(y+1)*CELL_SIZE, 1, color.Black, false)
+		}
+	}
+	for x, cols := range g.Board.HWalls {
+		for _, y := range cols {
+			vector.StrokeLine(screen, float32(x)*CELL_SIZE, float32(y)*CELL_SIZE, float32(x+1)*CELL_SIZE, float32(y)*CELL_SIZE, 1, color.Black, false)
+		}
+	}
+	// center box
+	c := g.Board.Center()
+	vector.DrawFilledRect(screen, float32(c.TopLeft.X)*CELL_SIZE, float32(c.TopLeft.Y)*CELL_SIZE, float32(c.Size().W)*CELL_SIZE-1, float32(c.Size().H)*CELL_SIZE-1, lineColor, false)
+}
+
+func (g *GameState) drawActors(screen *ebiten.Image) {
+	for _, actor := range g.Board.Actors {
+		g.drawActor(screen, actor)
+	}
+}
+
+func (g *GameState) drawActor(screen *ebiten.Image, actor *hyper.Actor) {
+	p := NewPosition(actor.Point, CELL_SIZE)
+	halfCellSize := CELL_SIZE / 2
+	p = p.Add(Position{halfCellSize, halfCellSize})
+	r := halfCellSize - 2
+	vector.DrawFilledCircle(screen, p.X, p.Y, r, Color(actor.Color), true)
+}

@@ -42,7 +42,7 @@ func TestRect_Contains(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(testcase.Name, func(t *testing.T) {
 			if testcase.Rect.Contains(testcase.Point) != testcase.Expected {
-				t.Errorf("unexpected value: Expected = %t, Rect = %s, Point = %s", testcase.Expected, testcase.Rect, testcase.Point)
+				t.Errorf("unexpected value: Expected = %t, Rect = %+v, Point = %+v", testcase.Expected, testcase.Rect, testcase.Point)
 			}
 		})
 	}

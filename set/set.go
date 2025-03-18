@@ -8,6 +8,10 @@ import (
 
 type Set[T comparable] map[T]struct{}
 
+func New[T comparable]() Set[T] {
+	return (Set[T])(map[T]struct{}{})
+}
+
 func (s Set[T]) Add(v T) {
 	((map[T]struct{})(s))[v] = struct{}{}
 }

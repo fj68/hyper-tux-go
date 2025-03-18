@@ -28,7 +28,7 @@ func (e *SwipeEvent) Direction() hyper.Direction {
 
 type SwipeEventHandler interface {
 	HandlePressed() bool
-	HandleReleased() *SwipeEvent
+	HandleReleased() (e *SwipeEvent, released bool)
 }
 
 type SwipeEventDispatcher struct {
@@ -64,8 +64,12 @@ func (d *SwipeEventDispatcher) handlePressed() {
 }
 
 func (d *SwipeEventDispatcher) handleReleased() {
-	if e := d.currentHandler.HandleReleased(); e != nil {
+	e, released := d.currentHandler.HandleReleased()
+	if e != nil {
 		d.q.PushBack(e)
+	}
+	if released {
+		d.currentHandler = nil
 	}
 }
 
@@ -87,7 +91,7 @@ func (d *SwipeEventDispatcher) Pop() *SwipeEvent {
 }
 
 type MouseEventHandler struct {
-	start hyper.Point
+	start *Position
 }
 
 func (h *MouseEventHandler) HandlePressed() bool {
@@ -95,24 +99,27 @@ func (h *MouseEventHandler) HandlePressed() bool {
 		return false
 	}
 	x, y := ebiten.CursorPosition()
-	h.start = hyper.Point{X: x, Y: y}
+	h.start = &Position{X: float32(x), Y: float32(y)}
 	return true
 }
 
-func (h *MouseEventHandler) HandleReleased() *SwipeEvent {
+func (h *MouseEventHandler) HandleReleased() (*SwipeEvent, bool) {
 	if !inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
-		return nil
+		return nil, false
 	}
 	x, y := ebiten.CursorPosition()
-	end := hyper.Point{X: x, Y: y}
-	if h.start.Equals(end) {
-		return nil
+	pos := Position{X: float32(x), Y: float32(y)}
+	start := h.start.ToPoint(CELL_SIZE)
+	end := pos.ToPoint(CELL_SIZE)
+	h.start = nil
+	if start.Equals(end) {
+		return nil, true
 	}
-	return &SwipeEvent{h.start, end}
+	return &SwipeEvent{start, end}, true
 }
 
 type TouchEventHandler struct {
-	start hyper.Point
+	start Position
 	id    ebiten.TouchID
 }
 
@@ -124,21 +131,23 @@ func (h *TouchEventHandler) HandlePressed() bool {
 	// handle only first input
 	x, y := ebiten.TouchPosition(touchIDs[0])
 	h.id = touchIDs[0]
-	h.start = hyper.Point{X: x, Y: y}
+	h.start = Position{X: float32(x), Y: float32(y)}
 	return true
 }
 
-func (h *TouchEventHandler) HandleReleased() *SwipeEvent {
+func (h *TouchEventHandler) HandleReleased() (*SwipeEvent, bool) {
 	touchIDs := inpututil.AppendJustReleasedTouchIDs([]ebiten.TouchID{})
 	for _, touchID := range touchIDs {
 		if touchID == h.id {
 			x, y := ebiten.TouchPosition(touchID)
-			end := hyper.Point{X: x, Y: y}
-			if h.start.Equals(end) {
-				return nil
+			pos := Position{X: float32(x), Y: float32(y)}
+			start := h.start.ToPoint(CELL_SIZE)
+			end := pos.ToPoint(CELL_SIZE)
+			if start.Equals(end) {
+				return nil, true
 			}
-			return &SwipeEvent{h.start, end}
+			return &SwipeEvent{start, end}, true
 		}
 	}
-	return nil
+	return nil, false
 }
