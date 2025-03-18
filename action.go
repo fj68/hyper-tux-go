@@ -8,7 +8,7 @@ type ActionRecord struct {
 }
 
 type Action interface {
-	Perform(*Game) *ActionRecord
+	Perform(*GameState) *ActionRecord
 }
 
 type MoveAction struct {
@@ -16,7 +16,7 @@ type MoveAction struct {
 	hyper.Direction
 }
 
-func (a *MoveAction) Perform(g *Game) *ActionRecord {
+func (a *MoveAction) Perform(g *GameState) *ActionRecord {
 	pos, ok, finished := g.MoveActor(a.Actor, a.Direction)
 	if !ok {
 		return nil
@@ -27,6 +27,6 @@ func (a *MoveAction) Perform(g *Game) *ActionRecord {
 	return &ActionRecord{
 		Color: a.Actor.Color,
 		Start: a.Actor.Point,
-		End: pos,
+		End:   pos,
 	}
 }
