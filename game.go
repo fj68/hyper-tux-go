@@ -14,7 +14,6 @@ type GameState struct {
 	*hyper.Board
 	*SwipeEventDispatcher
 	Actions []Action
-	Records []*ActionRecord
 }
 
 func NewGameState(size hyper.Size) (*GameState, error) {
@@ -51,9 +50,10 @@ func (g *GameState) handleInput() error {
 			// TODO: this should not be an error
 			return fmt.Errorf("No actor at %+v", e.Start)
 		}
-		action := MoveAction{actor, e.Direction()}
-		if r := action.Perform(g); r != nil {
-			g.Records = append(g.Records, r)
+		_, ok = g.Board.MoveActor(actor, e.Direction())
+		if !ok {
+			// TODO: this should not be an error
+			return fmt.Errorf("Unable to move: %+v to %s", actor, e.Direction())
 		}
 	}
 

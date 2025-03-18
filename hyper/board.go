@@ -12,17 +12,18 @@ import (
 
 type Board struct {
 	rand *rand.Rand
-	Counter
+	*History
 	Goal
 	*Mapdata
 	Actors       map[Color]*Actor
 	ColorWeights []int
+	Goaled       bool
 }
 
 func NewBoard(size Size) (*Board, error) {
 	b := &Board{
 		rand:    rand.New(rand.NewSource(time.Now().Unix())),
-		Counter: Counter{},
+		History: &History{},
 		Actors:  map[Color]*Actor{},
 		Mapdata: NewMapdata(size),
 	}
@@ -39,7 +40,8 @@ func NewBoard(size Size) (*Board, error) {
 }
 
 func (b *Board) NewGame() error {
-	b.Counter.Reset()
+	b.Goaled = false
+	b.History.Reset()
 	return b.PlaceGoalAtRandom()
 }
 
@@ -96,18 +98,23 @@ func (b *Board) PlaceGoalAtRandom() error {
 	return fmt.Errorf("unable to place goal")
 }
 
-func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool, finished bool) {
+func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool) {
 	pos = b.NextStop(actor.Point, d)
 	if actor.Point.Equals(pos) {
 		// unable to move to the direction
 		return
 	}
 	ok = true
-	b.Counter.Incr()
+	b.History.Push(&Record{
+		Color:     actor.Color,
+		Direction: d,
+		Start:     actor.Point,
+		End:       pos,
+	})
 	actor.MoveTo(pos)
 
 	if b.Goal.Reached(*actor) {
-		finished = true
+		b.Goaled = true
 	}
 	return
 }
