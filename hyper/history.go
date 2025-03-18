@@ -7,6 +7,14 @@ type Record struct {
 	Goaled     bool
 }
 
+func (r *Record) Equals(other *Record) bool {
+	return (r.Color == other.Color &&
+		r.Direction == other.Direction &&
+		r.Start.Equals(other.Start) &&
+		r.End.Equals(other.End) &&
+		r.Goaled == other.Goaled)
+}
+
 type History struct {
 	records []*Record
 	last    int
@@ -30,14 +38,15 @@ func (h *History) Undo() *Record {
 	if h.last < 1 {
 		return nil
 	}
+	r := h.records[h.last-1]
 	h.last--
-	return h.records[h.last+1]
+	return r
 }
 
 func (h *History) Redo() *Record {
-	if h.last+1 < len(h.records) {
+	if h.last+1 <= len(h.records) {
 		h.last++
-		return h.records[h.last]
+		return h.records[h.last-1]
 	}
 	return nil
 }
