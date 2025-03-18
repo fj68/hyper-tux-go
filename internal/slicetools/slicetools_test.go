@@ -3,7 +3,7 @@ package slicetools_test
 import (
 	"testing"
 
-	"github.com/fj68/hyper-tux-go/slicetools"
+	"github.com/fj68/hyper-tux-go/internal/slicetools"
 )
 
 func TestEvery(t *testing.T) {
