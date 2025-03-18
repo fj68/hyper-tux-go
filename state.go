@@ -3,18 +3,18 @@ package main
 import "github.com/hajimehoshi/ebiten/v2"
 
 type State interface {
-	Update(*Game) error
-	Draw(g *Game, screen *ebiten.Image)
+	Update() error
+	Draw(screen *ebiten.Image)
 }
 
 type StateMachine struct {
 	Current State
 }
 
-func (s *StateMachine) Update(g *Game) error {
-	return s.Current.Update(g)
+func (s *StateMachine) Update() error {
+	return s.Current.Update()
 }
 
-func (s *StateMachine) Draw(g *Game, screen *ebiten.Image) {
-	s.Current.Draw(g, screen)
+func (s *StateMachine) Draw(screen *ebiten.Image) {
+	s.Current.Draw(screen)
 }
