@@ -4,15 +4,13 @@ type Record struct {
 	Color
 	Direction
 	Start, End Point
-	Goaled     bool
 }
 
 func (r *Record) Equals(other *Record) bool {
 	return (r.Color == other.Color &&
 		r.Direction == other.Direction &&
 		r.Start.Equals(other.Start) &&
-		r.End.Equals(other.End) &&
-		r.Goaled == other.Goaled)
+		r.End.Equals(other.End))
 }
 
 type History struct {
