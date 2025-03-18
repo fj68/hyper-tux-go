@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image/color"
 	"log"
 
@@ -12,10 +13,24 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
+type Labels struct {
+	Steps  *widget.Label
+	Goaled *widget.Label
+}
+
+func (ls *Labels) Update(b *hyper.Board) {
+	ls.Steps.Label = fmt.Sprintf("Steps: %d", b.Steps())
+	if b.Goaled {
+		ls.Goaled.Label = "Goal"
+	} else {
+		ls.Goaled.Label = ""
+	}
+}
+
 func createButton(label string, onClick widget.ButtonClickedHandlerFunc) (*widget.Button, error) {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	face := &text.GoTextFace{
@@ -36,13 +51,13 @@ func createButton(label string, onClick widget.ButtonClickedHandlerFunc) (*widge
 		Disabled:     idle,
 	}
 
-	buttonTextColor := &widget.ButtonTextColor{
+	textColor := &widget.ButtonTextColor{
 		Idle: color.RGBA{255, 255, 255, 255},
 	}
 
 	return widget.NewButton(
 		widget.ButtonOpts.Image(buttonImage),
-		widget.ButtonOpts.Text(label, face, buttonTextColor),
+		widget.ButtonOpts.Text(label, face, textColor),
 		widget.ButtonOpts.TextPadding(widget.Insets{
 			Left:  30,
 			Right: 30,
@@ -51,7 +66,29 @@ func createButton(label string, onClick widget.ButtonClickedHandlerFunc) (*widge
 	), nil
 }
 
-func createUI(b *hyper.Board) (*ebitenui.UI, error) {
+func createLabel(content string) (*widget.Label, error) {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
+	if err != nil {
+		return nil, err
+	}
+
+	face := &text.GoTextFace{
+		Source: s,
+		Size:   32,
+	}
+
+	textColor := &widget.LabelColor{
+		Idle: color.RGBA{255, 255, 255, 255},
+	}
+
+	label := widget.NewLabel(
+		widget.LabelOpts.Text(content, face, textColor),
+	)
+
+	return label, nil
+}
+
+func createUI(b *hyper.Board) (*ebitenui.UI, *Labels, error) {
 	root := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
 			widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(10)),
@@ -62,6 +99,33 @@ func createUI(b *hyper.Board) (*ebitenui.UI, error) {
 		Container: root,
 	}
 
+	buttonGroup, err := createButtonGroup(b)
+	if err != nil {
+		return nil, nil, err
+	}
+	root.AddChild(buttonGroup)
+
+	stepsLabel, err := createLabel("0")
+	if err != nil {
+		return nil, nil, err
+	}
+	buttonGroup.AddChild(stepsLabel)
+
+	goaledLabel, err := createLabel("")
+	if err != nil {
+		return nil, nil, err
+	}
+	buttonGroup.AddChild(goaledLabel)
+
+	labels := &Labels{
+		Steps:  stepsLabel,
+		Goaled: goaledLabel,
+	}
+
+	return ui, labels, nil
+}
+
+func createButtonGroup(b *hyper.Board) (*widget.Container, error) {
 	buttonGroup := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -74,7 +138,14 @@ func createUI(b *hyper.Board) (*ebitenui.UI, error) {
 			}),
 		),
 	)
-	root.AddChild(buttonGroup)
+
+	resetButton, err := createButton("Reset", func(args *widget.ButtonClickedEventArgs) {
+		b.Reset()
+	})
+	if err != nil {
+		return nil, err
+	}
+	buttonGroup.AddChild(resetButton)
 
 	undoButton, err := createButton("Undo", func(args *widget.ButtonClickedEventArgs) {
 		b.Undo()
@@ -102,5 +173,5 @@ func createUI(b *hyper.Board) (*ebitenui.UI, error) {
 	}
 	buttonGroup.AddChild(newGameButton)
 
-	return ui, nil
+	return buttonGroup, nil
 }

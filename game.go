@@ -15,6 +15,7 @@ type GameState struct {
 	*hyper.Board
 	*SwipeEventDispatcher
 	*ebitenui.UI
+	labels *Labels
 }
 
 func NewGameState(size hyper.Size) (*GameState, error) {
@@ -28,7 +29,7 @@ func NewGameState(size hyper.Size) (*GameState, error) {
 		log.Println(actor)
 	}
 
-	ui, err := createUI(board)
+	ui, labels, err := createUI(board)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,8 @@ func NewGameState(size hyper.Size) (*GameState, error) {
 			&MouseEventHandler{},
 			&TouchEventHandler{},
 		),
-		UI: ui,
+		UI:     ui,
+		labels: labels,
 	}, nil
 }
 
@@ -69,17 +71,18 @@ func (g *GameState) handleInput() error {
 }
 
 func (g *GameState) Update() error {
-	g.UI.Update()
-
 	if err := g.handleInput(); err != nil {
 		return err
 	}
+
+	g.labels.Update(g.Board)
+
+	g.UI.Update()
 
 	return nil
 }
 
 func (g *GameState) Draw(screen *ebiten.Image) {
-	vector.DrawFilledRect(screen, 0, 0, float32(g.W)*CELL_SIZE, float32(g.H)*CELL_SIZE, color.White, false)
 	g.drawBoard(screen)
 	g.drawActors(screen)
 	g.drawGoal(screen)
@@ -88,13 +91,17 @@ func (g *GameState) Draw(screen *ebiten.Image) {
 
 func (g *GameState) drawBoard(screen *ebiten.Image) {
 	lineColor := color.Gray{200}
+	// background
+	vector.DrawFilledRect(screen, 0, 0, float32(g.W)*CELL_SIZE, float32(g.H)*CELL_SIZE, color.White, false)
 	// lines
 	for y := range g.Board.H - 1 {
 		vector.StrokeLine(screen, 0, float32(y+1)*CELL_SIZE, float32(g.Board.W)*CELL_SIZE, float32(y+1)*CELL_SIZE, 1, lineColor, false)
 	}
+	vector.StrokeLine(screen, 0, float32(g.Board.H)*CELL_SIZE, float32(g.Board.W)*CELL_SIZE, float32(g.Board.H)*CELL_SIZE, 1, color.Black, false)
 	for x := range g.Board.W - 1 {
 		vector.StrokeLine(screen, float32(x+1)*CELL_SIZE, 0, float32(x+1)*CELL_SIZE, float32(g.Board.H)*CELL_SIZE, 1, lineColor, false)
 	}
+	vector.StrokeLine(screen, float32(g.Board.W)*CELL_SIZE, 0, float32(g.Board.W)*CELL_SIZE, float32(g.Board.H)*CELL_SIZE, 1, color.Black, false)
 	// walls
 	for y, rows := range g.Board.VWalls {
 		for _, x := range rows {
