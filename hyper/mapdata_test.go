@@ -6,7 +6,7 @@ import (
 	"github.com/fj68/hyper-tux-go/hyper"
 )
 
-func TestNewMapdateFromSlice(t *testing.T) {
+func TestNewMapdataFromSlice(t *testing.T) {
 	testcases := []struct {
 		Name     string
 		Input    [][]int
@@ -25,12 +25,12 @@ func TestNewMapdateFromSlice(t *testing.T) {
 				{0, 0, 0, 0, 0, 0, 0, 0},
 			},
 			Expected: func() *hyper.Mapdata {
-				m := hyper.NewMapdata(hyper.Size{7, 7})
-				m.HWalls[1].Add(1)
-				m.HWalls[1].Add(5)
-				m.HWalls[5].Add(5)
-				m.VWalls[1].Add(1)
-				m.HWalls[5].Add(5)
+				m := hyper.NewMapdata(hyper.Size{8, 8})
+				m.HWalls[1] = append(m.HWalls[1], 1, 6)
+				m.HWalls[5] = append(m.HWalls[5], 6)
+				m.VWalls[1] = append(m.VWalls[1], 1)
+				m.VWalls[2] = append(m.VWalls[2], 6)
+				m.VWalls[6] = append(m.VWalls[6], 5)
 				return m
 			},
 		},

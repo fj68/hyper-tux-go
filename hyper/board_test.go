@@ -11,14 +11,14 @@ func TestBoard_NextStop(t *testing.T) {
 
 	testcases := []struct {
 		Name string
-		hyper.Actor
+		*hyper.Actor
 		hyper.Direction
 		Walls    func(b *hyper.Board)
 		Expected hyper.Point
 	}{
 		{
 			"move north",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.North,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 3})
@@ -27,7 +27,7 @@ func TestBoard_NextStop(t *testing.T) {
 		},
 		{
 			"move north and stop at the edge",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.North,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 6})
@@ -36,17 +36,17 @@ func TestBoard_NextStop(t *testing.T) {
 		},
 		{
 			"move north and stop by another actor",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.North,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 2})
-				b.Actors[hyper.Blue] = hyper.Actor{hyper.Blue, hyper.Point{5, 3}}
+				b.Actors[hyper.Blue] = &hyper.Actor{hyper.Blue, hyper.Point{5, 3}}
 			},
 			hyper.Point{5, 3},
 		},
 		{
 			"move south",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.South,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 10})
@@ -55,7 +55,7 @@ func TestBoard_NextStop(t *testing.T) {
 		},
 		{
 			"move south and stop at the edge",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.South,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 5})
@@ -64,17 +64,17 @@ func TestBoard_NextStop(t *testing.T) {
 		},
 		{
 			"move south and stop by another actor",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.South,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 10})
-				b.Actors[hyper.Blue] = hyper.Actor{hyper.Blue, hyper.Point{5, 7}}
+				b.Actors[hyper.Blue] = &hyper.Actor{hyper.Blue, hyper.Point{5, 7}}
 			},
 			hyper.Point{5, 7},
 		},
 		{
 			"move west",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.West,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{3, 5})
@@ -83,7 +83,7 @@ func TestBoard_NextStop(t *testing.T) {
 		},
 		{
 			"move west and stop at the edge",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.West,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{6, 5})
@@ -92,17 +92,17 @@ func TestBoard_NextStop(t *testing.T) {
 		},
 		{
 			"move west and stop by another actor",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.West,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{2, 5})
-				b.Actors[hyper.Blue] = hyper.Actor{hyper.Blue, hyper.Point{3, 5}}
+				b.Actors[hyper.Blue] = &hyper.Actor{hyper.Blue, hyper.Point{3, 5}}
 			},
 			hyper.Point{3, 5},
 		},
 		{
 			"move east",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.East,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{7, 5})
@@ -111,7 +111,7 @@ func TestBoard_NextStop(t *testing.T) {
 		},
 		{
 			"move east and stop at the edge",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.East,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{5, 5})
@@ -120,11 +120,11 @@ func TestBoard_NextStop(t *testing.T) {
 		},
 		{
 			"move east and stop by another actor",
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.East,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{10, 5})
-				b.Actors[hyper.Blue] = hyper.Actor{hyper.Blue, hyper.Point{7, 5}}
+				b.Actors[hyper.Blue] = &hyper.Actor{hyper.Blue, hyper.Point{7, 5}}
 			},
 			hyper.Point{7, 5},
 		},
@@ -141,7 +141,7 @@ func TestBoard_NextStop(t *testing.T) {
 			// delete all actors and add neccessary one only
 			// because they are randomly placed and may block others accidentally
 			// which leads tests failed
-			board.Actors = map[hyper.Color]hyper.Actor{}
+			board.Actors = map[hyper.Color]*hyper.Actor{}
 			board.Actors[testcase.Actor.Color] = testcase.Actor
 
 			actor, ok := board.Actors[testcase.Actor.Color]
@@ -154,7 +154,7 @@ func TestBoard_NextStop(t *testing.T) {
 
 			actual := board.NextStop(testcase.Actor.Point, testcase.Direction)
 			if !actual.Equals(testcase.Expected) {
-				t.Errorf("unexpected value: Expected = %s, Actual = %s", testcase.Expected, actual)
+				t.Errorf("unexpected value: Expected = %+v, Actual = %+v", testcase.Expected, actual)
 			}
 		})
 	}
@@ -170,7 +170,7 @@ func TestBoard_MoveActor(t *testing.T) {
 	testcases := []struct {
 		Name      string
 		Goal      hyper.Goal
-		Actor     hyper.Actor
+		Actor     *hyper.Actor
 		Direction hyper.Direction
 		Walls     func(b *hyper.Board)
 		Expected  result
@@ -178,7 +178,7 @@ func TestBoard_MoveActor(t *testing.T) {
 		{
 			"unable to move north",
 			hyper.Goal{hyper.Red, hyper.Point{3, 3}},
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.North,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 5})
@@ -188,7 +188,7 @@ func TestBoard_MoveActor(t *testing.T) {
 		{
 			"unable to move west",
 			hyper.Goal{hyper.Red, hyper.Point{3, 3}},
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.West,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{5, 5})
@@ -198,7 +198,7 @@ func TestBoard_MoveActor(t *testing.T) {
 		{
 			"unable to move south",
 			hyper.Goal{hyper.Red, hyper.Point{3, 3}},
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.South,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 5})
@@ -208,7 +208,7 @@ func TestBoard_MoveActor(t *testing.T) {
 		{
 			"unable to move east",
 			hyper.Goal{hyper.Red, hyper.Point{3, 3}},
-			hyper.Actor{hyper.Red, hyper.Point{5, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 5}},
 			hyper.East,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{5, 5})
@@ -218,7 +218,7 @@ func TestBoard_MoveActor(t *testing.T) {
 		{
 			"reached goal",
 			hyper.Goal{hyper.Red, hyper.Point{5, 5}},
-			hyper.Actor{hyper.Red, hyper.Point{5, 4}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 4}},
 			hyper.South,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 5})
@@ -228,7 +228,7 @@ func TestBoard_MoveActor(t *testing.T) {
 		{
 			"reached black goal",
 			hyper.Goal{hyper.Black, hyper.Point{5, 5}},
-			hyper.Actor{hyper.Red, hyper.Point{4, 5}},
+			&hyper.Actor{hyper.Red, hyper.Point{4, 5}},
 			hyper.East,
 			func(b *hyper.Board) {
 				b.PutVWall(hyper.Point{5, 5})
@@ -238,7 +238,7 @@ func TestBoard_MoveActor(t *testing.T) {
 		{
 			"move south",
 			hyper.Goal{hyper.Red, hyper.Point{5, 5}},
-			hyper.Actor{hyper.Red, hyper.Point{5, 4}},
+			&hyper.Actor{hyper.Red, hyper.Point{5, 4}},
 			hyper.South,
 			func(b *hyper.Board) {
 				b.PutHWall(hyper.Point{5, 10})
@@ -268,13 +268,13 @@ func TestBoard_MoveActor(t *testing.T) {
 			_, ok, finished := board.MoveActor(testcase.Actor, testcase.Direction)
 
 			if testcase.Expected.Ok != ok {
-				t.Errorf("unexpected return value ok: Actor = %s, Goal = %s", actor, board.Goal)
+				t.Errorf("unexpected return value ok: Actor = %+v, Goal = %+v", actor, board.Goal)
 			}
 			if testcase.Expected.Finished != finished {
-				t.Errorf("unexpected return value finished: Actor = %s, Goal = %s", actor, board.Goal)
+				t.Errorf("unexpected return value finished: Actor = %+v, Goal = %+v", actor, board.Goal)
 			}
 			if !testcase.Expected.Point.Equals(actor.Point) {
-				t.Errorf("unexpected return value position: Expected = %s, Actor = %s, Goal = %s", testcase.Expected.Point, actor, board.Goal)
+				t.Errorf("unexpected return value position: Expected = %+v, Actor = %+v, Goal = %+v", testcase.Expected.Point, actor, board.Goal)
 			}
 		})
 	}

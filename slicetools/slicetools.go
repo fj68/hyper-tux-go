@@ -30,6 +30,26 @@ func Map[T, U any](xs []T, f func(T) U) []U {
 	return rs
 }
 
+func Filter[T any](xs []T, f func(T) bool) []T {
+	rs := make([]T, 0, len(xs))
+	for _, x := range xs {
+		if f(x) {
+			rs = append(rs, x)
+		}
+	}
+	return rs
+}
+
+func FilterMap[T, U any](xs []T, f func(T) bool, m func(T) U) []U {
+	rs := make([]U, 0, len(xs))
+	for _, x := range xs {
+		if f(x) {
+			rs = append(rs, m(x))
+		}
+	}
+	return rs
+}
+
 func FoldLeft[T any, U any](xs []T, init U, f func(U, int, T) U) U {
 	r := init
 	for i, x := range xs {

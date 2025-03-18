@@ -6,8 +6,8 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/fj68/hyper-tux-go/set"
 	"github.com/fj68/hyper-tux-go/slicetools"
+	"golang.org/x/exp/slices"
 )
 
 // walls
@@ -18,18 +18,15 @@ import (
 
 type Mapdata struct {
 	Size
-	HWalls []set.Set[int]
-	VWalls []set.Set[int]
+	HWalls [][]int
+	VWalls [][]int
 }
 
 func NewMapdata(size Size) *Mapdata {
-	cells := make([][]Direction, size.H)
-	for i := range cells {
-		cells[i] = make([]Direction, size.W)
-	}
-	m := &Mapdata{
-		Size: size,
-	}
+	HWalls := make([][]int, size.W)
+	VWalls := make([][]int, size.H)
+
+	m := &Mapdata{size, HWalls, VWalls}
 
 	// place center walls
 	m.initCenterWalls()
@@ -82,15 +79,24 @@ func NewMapdataFromSlice(rows [][]int) (*Mapdata, error) {
 		}
 	}
 
+	// place center walls
+	m.initCenterWalls()
+
 	return m, nil
 }
 
 func (m *Mapdata) PutHWall(p Point) {
-	m.HWalls[p.X].Add(p.Y)
+	if slices.Contains(m.HWalls[p.X], p.Y) {
+		return
+	}
+	m.HWalls[p.X] = append(m.HWalls[p.X], p.Y)
 }
 
 func (m *Mapdata) PutVWall(p Point) {
-	m.VWalls[p.Y].Add(p.X)
+	if slices.Contains(m.VWalls[p.Y], p.X) {
+		return
+	}
+	m.VWalls[p.Y] = append(m.VWalls[p.Y], p.X)
 }
 
 func (m *Mapdata) Center() Rect {
@@ -103,22 +109,28 @@ func (m *Mapdata) initCenterWalls() {
 
 	m.PutHWall(Point{r.TopLeft.X, r.TopLeft.Y})
 	m.PutVWall(Point{r.TopLeft.X, r.TopLeft.Y})
-	m.PutHWall(Point{r.TopLeft.X, r.BottomRight.Y + 1})
-	m.PutVWall(Point{r.TopLeft.X + 1, r.BottomRight.Y + 1})
-	m.PutHWall(Point{r.BottomRight.X, r.TopLeft.Y})
-	m.PutVWall(Point{r.BottomRight.X, r.TopLeft.Y + 1})
-	m.PutHWall(Point{r.BottomRight.X, r.BottomRight.Y + 1})
-	m.PutVWall(Point{r.BottomRight.X + 1, r.BottomRight.Y + 1})
+	m.PutHWall(Point{r.TopLeft.X, r.BottomRight.Y})
+	m.PutVWall(Point{r.TopLeft.X, r.BottomRight.Y - 1})
+	m.PutHWall(Point{r.BottomRight.X - 1, r.TopLeft.Y})
+	m.PutVWall(Point{r.BottomRight.X, r.TopLeft.Y})
+	m.PutHWall(Point{r.BottomRight.X - 1, r.BottomRight.Y})
+	m.PutVWall(Point{r.BottomRight.X, r.BottomRight.Y - 1})
 }
 
 func (m *Mapdata) Equals(other *Mapdata) bool {
-	intSetEquals := func(a, b set.Set[int]) bool {
-		return a.Equals(b)
+	intSliceEquals := func(a, b []int) bool {
+		return slicetools.Equals(a, b)
 	}
 
-	isSizeEqual := m.Size.Equals(other.Size)
-	isHWallsEqual := slicetools.EqualsFunc(m.HWalls, other.HWalls, intSetEquals)
-	isVWallsEqual := slicetools.EqualsFunc(m.VWalls, other.VWalls, intSetEquals)
+	if !m.Size.Equals(other.Size) {
+		return false
+	}
+	if !slicetools.EqualsFunc(m.HWalls, other.HWalls, intSliceEquals) {
+		return false
+	}
+	if !slicetools.EqualsFunc(m.VWalls, other.VWalls, intSliceEquals) {
+		return false
+	}
 
-	return isSizeEqual && isHWallsEqual && isVWallsEqual
+	return true
 }

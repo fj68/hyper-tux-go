@@ -2,8 +2,12 @@ package hyper
 
 import (
 	"fmt"
+	"maps"
 	"math/rand"
+	"slices"
 	"time"
+
+	"github.com/fj68/hyper-tux-go/slicetools"
 )
 
 type Board struct {
@@ -11,7 +15,7 @@ type Board struct {
 	Counter
 	Goal
 	*Mapdata
-	Actors       map[Color]Actor
+	Actors       map[Color]*Actor
 	ColorWeights []int
 }
 
@@ -19,14 +23,16 @@ func NewBoard(size Size) (*Board, error) {
 	b := &Board{
 		rand:    rand.New(rand.NewSource(time.Now().Unix())),
 		Counter: Counter{},
-		Actors:  map[Color]Actor{},
+		Actors:  map[Color]*Actor{},
 		Mapdata: NewMapdata(size),
 	}
 
 	// place actors
 	for _, color := range AllColors {
-		b.Actors[color] = Actor{Color: color, Point: Point{0, 0}}
-		b.PlaceActorAtRandom(color)
+		b.Actors[color] = &Actor{Color: color, Point: Point{0, 0}}
+		if err := b.PlaceActorAtRandom(color); err != nil {
+			return nil, err
+		}
 	}
 
 	return b, nil
@@ -34,17 +40,16 @@ func NewBoard(size Size) (*Board, error) {
 
 func (b *Board) NewGame() error {
 	b.Counter.Reset()
-	b.PlaceGoalAtRandom()
-	return nil
+	return b.PlaceGoalAtRandom()
 }
 
-func (b *Board) ActorAt(p Point) (Actor, bool) {
-	for _, actor := range b.Actors {
+func (b *Board) ActorAt(p Point) (actor *Actor, exists bool) {
+	for _, actor = range b.Actors {
 		if actor.Point.Equals(p) {
 			return actor, true
 		}
 	}
-	return Actor{}, false
+	return
 }
 
 func (b *Board) RandomPlace() (p Point, ok bool) {
@@ -62,32 +67,36 @@ func (b *Board) RandomPlace() (p Point, ok bool) {
 }
 
 func (b *Board) PlaceActorAtRandom(color Color) error {
-	actor, ok := b.Actors[color]
+	_, ok := b.Actors[color]
 	if !ok {
 		return fmt.Errorf("unable to find actor of color: %s", color)
 	}
 
-	pos, ok := b.RandomPlace()
-	actor, exists := b.ActorAt(pos)
-	if !ok || !exists {
-		return fmt.Errorf("unable to place actor: %s", color)
+	for range 50 {
+		pos, ok := b.RandomPlace()
+		_, exists := b.ActorAt(pos)
+		if ok && !exists {
+			b.Actors[color].MoveTo(pos)
+			return nil
+		}
 	}
-	actor.MoveTo(pos)
-	return nil
+	return fmt.Errorf("unable to place actor: %s", color)
 }
 
 func (b *Board) PlaceGoalAtRandom() error {
-	pos, ok := b.RandomPlace()
-	_, exists := b.ActorAt(pos)
-	if !ok || !exists {
-		return fmt.Errorf("unable to place goal")
+	for range 50 {
+		pos, ok := b.RandomPlace()
+		_, exists := b.ActorAt(pos)
+		if ok && !exists {
+			color := RandomColor()
+			b.Goal = Goal{color, pos}
+			return nil
+		}
 	}
-	color := RandomColor()
-	b.Goal = Goal{color, pos}
-	return nil
+	return fmt.Errorf("unable to place goal")
 }
 
-func (b *Board) MoveActor(actor Actor, d Direction) (pos Point, ok bool, finished bool) {
+func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool, finished bool) {
 	pos = b.NextStop(actor.Point, d)
 	if actor.Point.Equals(pos) {
 		// unable to move to the direction
@@ -97,7 +106,7 @@ func (b *Board) MoveActor(actor Actor, d Direction) (pos Point, ok bool, finishe
 	b.Counter.Incr()
 	actor.MoveTo(pos)
 
-	if b.Goal.Reached(actor) {
+	if b.Goal.Reached(*actor) {
 		finished = true
 	}
 	return
@@ -118,109 +127,121 @@ func (b *Board) NextStop(current Point, d Direction) Point {
 }
 
 func (b *Board) nextStopNorth(current Point) Point {
-	// min of y-index
-	y := 0
-
 	// find y-index of actor who is:
 	//   1. on the current column
 	//   2. nearer to the north than current
-	//   3. nearer to the current position than ever before
-	for _, actor := range b.Actors {
-		if actor.Point.X == current.X && actor.Y != current.Y && y < actor.Point.Y {
-			y = actor.Point.Y
-		}
-	}
+	actors := slicetools.FilterMap(
+		slices.Collect(maps.Values(b.Actors)),
+		func(actor *Actor) bool {
+			return actor.X == current.X && actor.Y < current.Y
+		},
+		func(actor *Actor) int {
+			return actor.Y + 1
+		},
+	)
 
 	// find y-index of wall which is:
 	//   1. on the current column
 	//   2. nearer to the west than current
-	//   3. nearer to the current position than ever before
-	for wall := range b.HWalls[current.X] {
-		if y < wall && wall <= current.Y {
-			y = wall
-		}
-	}
+	walls := slicetools.Filter(b.HWalls[current.X], func(wall int) bool {
+		return wall <= current.Y
+	})
+
+	// find x which is nearest to the current position
+	ys := []int{0}
+	ys = append(ys, actors...)
+	ys = append(ys, walls...)
+	y := slices.Max(ys)
 
 	return Point{current.X, y}
 }
 
 func (b *Board) nextStopSouth(current Point) Point {
-	// max of x-index
-	y := b.Size.H - 1
-
 	// find y-index of actor who is:
 	//   1. on the current column
 	//   2. nearer to the south than current
-	//   3. nearer to the current position than ever before
-	for _, actor := range b.Actors {
-		if actor.Point.X == current.X && actor.Y != current.Y && actor.Point.Y < y {
-			y = actor.Point.Y
-		}
-	}
+	actors := slicetools.FilterMap(
+		slices.Collect(maps.Values(b.Actors)),
+		func(actor *Actor) bool {
+			return actor.X == current.X && actor.Y > current.Y
+		},
+		func(actor *Actor) int {
+			return actor.Y
+		},
+	)
 
 	// find y-index of wall which is:
 	//   1. on the current column
 	//   2. nearer to the south than current
-	//   3. nearer to the current position than ever before
-	for wall := range b.HWalls[current.X] {
-		if wall < y && current.Y+1 <= wall {
-			y = wall
-		}
-	}
+	walls := slicetools.Filter(b.HWalls[current.X], func(wall int) bool {
+		return wall > current.Y
+	})
+
+	// find x which is nearest to the current position
+	ys := []int{b.Mapdata.H}
+	ys = append(ys, actors...)
+	ys = append(ys, walls...)
+	y := slices.Min(ys) - 1
 
 	return Point{current.X, y}
 }
 
 func (b *Board) nextStopWest(current Point) Point {
-	// min of x-index
-	x := 0
-
-	// find x-index of actor who is:
+	// find x-indices of actors who are:
 	//   1. on the current row
 	//   2. nearer to the west than current
-	//   3. nearer to the current position than ever before
-	for _, actor := range b.Actors {
-		if actor.Point.Y == current.Y && actor.X != current.X && x < actor.Point.X {
-			x = actor.Point.X
-		}
-	}
+	actors := slicetools.FilterMap(
+		slices.Collect(maps.Values(b.Actors)),
+		func(actor *Actor) bool {
+			return actor.Y == current.Y && actor.X < current.X
+		},
+		func(actor *Actor) int {
+			return actor.X + 1
+		},
+	)
 
-	// find x-index of wall which is:
+	// find x-indices of walls which are:
 	//   1. on the current row
 	//   2. nearer to the west than current
-	//   3. nearer to the current position than ever before
-	for wall := range b.VWalls[current.Y] {
-		if x < wall && wall <= current.X {
-			x = wall
-		}
-	}
+	walls := slicetools.Filter(b.VWalls[current.Y], func(wall int) bool {
+		return wall <= current.X
+	})
+
+	// find x which is nearest to the current position
+	xs := []int{0}
+	xs = append(xs, actors...)
+	xs = append(xs, walls...)
+	x := slices.Max(xs)
 
 	return Point{x, current.Y}
 }
 
 func (b *Board) nextStopEast(current Point) Point {
-	// max of x-index
-	x := b.Mapdata.Size.W - 1
-
 	// find x-index of actor who is:
 	//   1. on the current row
 	//   2. nearer to the east than current
-	//   3. nearer to the current position than ever before
-	for _, actor := range b.Actors {
-		if actor.Point.Y == current.Y && current.X+1 <= actor.Point.X && actor.Point.X < x {
-			x = actor.Point.X
-		}
-	}
+	actors := slicetools.FilterMap(
+		slices.Collect(maps.Values(b.Actors)),
+		func(actor *Actor) bool {
+			return actor.Y == current.Y && actor.X > current.X
+		},
+		func(actor *Actor) int {
+			return actor.X
+		},
+	)
 
 	// find x-index of wall which is:
 	//   1. on the current row
 	//   2. nearer to the east than current
-	//   3. nearer to the current position than ever before
-	for wall := range b.VWalls[current.Y] {
-		if wall < x && current.X+1 <= wall {
-			x = wall
-		}
-	}
+	walls := slicetools.Filter(b.VWalls[current.Y], func(wall int) bool {
+		return wall > current.X
+	})
+
+	// find x which is nearest to the current position
+	xs := []int{b.Mapdata.W}
+	xs = append(xs, actors...)
+	xs = append(xs, walls...)
+	x := slices.Min(xs) - 1
 
 	return Point{x, current.Y}
 }
