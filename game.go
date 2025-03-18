@@ -71,6 +71,7 @@ func (g *GameState) Draw(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, 0, 0, float32(g.W)*CELL_SIZE, float32(g.H)*CELL_SIZE, color.White, false)
 	g.drawBoard(screen)
 	g.drawActors(screen)
+	g.drawGoal(screen)
 }
 
 func (g *GameState) drawBoard(screen *ebiten.Image) {
@@ -110,4 +111,9 @@ func (g *GameState) drawActor(screen *ebiten.Image, actor *hyper.Actor) {
 	p = p.Add(Position{halfCellSize, halfCellSize})
 	r := halfCellSize - 2
 	vector.DrawFilledCircle(screen, p.X, p.Y, r, Color(actor.Color), true)
+}
+
+func (g *GameState) drawGoal(screen *ebiten.Image) {
+	goal := g.Board.Goal
+	vector.DrawFilledRect(screen, float32(goal.X)*CELL_SIZE, float32(goal.Y)*CELL_SIZE, CELL_SIZE-1, CELL_SIZE-1, Color(goal.Color), false)
 }

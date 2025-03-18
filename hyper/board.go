@@ -2,6 +2,7 @@ package hyper
 
 import (
 	"fmt"
+	"log"
 	"maps"
 	"math/rand"
 	"slices"
@@ -36,13 +37,19 @@ func NewBoard(size Size) (*Board, error) {
 		}
 	}
 
+	b.NewGame()
+
 	return b, nil
 }
 
 func (b *Board) NewGame() error {
 	b.Goaled = false
 	b.history.Reset()
-	return b.PlaceGoalAtRandom()
+	if err := b.PlaceGoalAtRandom(); err != nil {
+		return err
+	}
+	log.Println(b.Goal)
+	return nil
 }
 
 func (b *Board) ActorAt(p Point) (actor *Actor, exists bool) {
