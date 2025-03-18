@@ -4,6 +4,7 @@ type Record struct {
 	Color
 	Direction
 	Start, End Point
+	Goaled     bool
 }
 
 type History struct {
@@ -33,7 +34,7 @@ func (h *History) Undo() *Record {
 	return h.records[h.last+1]
 }
 
-func (h *History) Redo(b *Board) *Record {
+func (h *History) Redo() *Record {
 	if h.last+1 < len(h.records) {
 		h.last++
 		return h.records[h.last]

@@ -11,8 +11,8 @@ import (
 )
 
 type Board struct {
-	rand *rand.Rand
-	*History
+	rand    *rand.Rand
+	history *History
 	Goal
 	*Mapdata
 	Actors       map[Color]*Actor
@@ -23,7 +23,7 @@ type Board struct {
 func NewBoard(size Size) (*Board, error) {
 	b := &Board{
 		rand:    rand.New(rand.NewSource(time.Now().Unix())),
-		History: &History{},
+		history: &History{},
 		Actors:  map[Color]*Actor{},
 		Mapdata: NewMapdata(size),
 	}
@@ -41,7 +41,7 @@ func NewBoard(size Size) (*Board, error) {
 
 func (b *Board) NewGame() error {
 	b.Goaled = false
-	b.History.Reset()
+	b.history.Reset()
 	return b.PlaceGoalAtRandom()
 }
 
@@ -105,7 +105,7 @@ func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool) {
 		return
 	}
 	ok = true
-	b.History.Push(&Record{
+	b.history.Push(&Record{
 		Color:     actor.Color,
 		Direction: d,
 		Start:     actor.Point,
@@ -117,6 +117,24 @@ func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool) {
 		b.Goaled = true
 	}
 	return
+}
+
+func (b *Board) Undo() {
+	r := b.history.Undo()
+	if r == nil {
+		return
+	}
+	b.Actors[r.Color].Point = r.Start
+	b.Goaled = r.Goaled
+}
+
+func (b *Board) Redo() {
+	r := b.history.Redo()
+	if r == nil {
+		return
+	}
+	b.Actors[r.Color].Point = r.End
+	b.Goaled = r.Goaled
 }
 
 func (b *Board) NextStop(current Point, d Direction) Point {
