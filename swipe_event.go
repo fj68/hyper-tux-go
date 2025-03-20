@@ -13,28 +13,30 @@ type SwipeEvent struct {
 }
 
 func (e *SwipeEvent) Direction() hyper.Direction {
-	distance := e.End.Sub(e.Start)
-	if distance.Abs().X > distance.Abs().Y {
-		if distance.X < 0 {
+	diff := e.End.Sub(e.Start)
+	distance := diff.Abs()
+	if distance.X > distance.Y {
+		if diff.X < 0 {
 			return hyper.West
 		}
 		return hyper.East
 	}
-	if distance.Y < 0 {
+	if diff.Y < 0 {
 		return hyper.North
 	}
 	return hyper.South
 }
 
 type SwipeEventHandler interface {
-	HandlePressed() bool
-	HandleReleased() (e *SwipeEvent, released bool)
+	HandlePressed() (start *Position)
+	HandleReleased() (end *Position)
 }
 
 type SwipeEventDispatcher struct {
 	q              *list.List // of *SwipeEvent
 	EventHandlers  []SwipeEventHandler
 	currentHandler SwipeEventHandler
+	start          *Position
 }
 
 func NewSwipeEventDispather(handlers ...SwipeEventHandler) *SwipeEventDispatcher {
@@ -55,7 +57,8 @@ func (d *SwipeEventDispatcher) Update() error {
 
 func (d *SwipeEventDispatcher) handlePressed() {
 	for _, handler := range d.EventHandlers {
-		if handler.HandlePressed() {
+		d.start = handler.HandlePressed()
+		if d.start != nil {
 			d.currentHandler = handler
 			break
 		}
@@ -64,13 +67,22 @@ func (d *SwipeEventDispatcher) handlePressed() {
 }
 
 func (d *SwipeEventDispatcher) handleReleased() {
-	e, released := d.currentHandler.HandleReleased()
-	if e != nil {
-		d.q.PushBack(e)
+	pos := d.currentHandler.HandleReleased()
+	if pos == nil {
+		return
 	}
-	if released {
-		d.currentHandler = nil
+	
+	start := d.start.ToPoint(CELL_SIZE)
+	end := pos.ToPoint(CELL_SIZE)
+	
+	d.start = nil
+	d.currentHandler = nil
+	
+	if start.Equals(end) {
+		return
 	}
+	
+	d.q.PushBack(&SwipeEvent{start, end})
 }
 
 func (d *SwipeEventDispatcher) Len() int {
@@ -83,47 +95,36 @@ func (d *SwipeEventDispatcher) Pop() *SwipeEvent {
 		return nil
 	}
 	v := d.q.Remove(front)
-	e, ok := v.(*SwipeEvent)
+	ev, ok := v.(*SwipeEvent)
 	if !ok {
 		return nil
 	}
-	return e
+	return ev
 }
 
-type MouseEventHandler struct {
-	start *Position
-}
+type MouseEventHandler struct {}
 
-func (h *MouseEventHandler) HandlePressed() bool {
+func (h *MouseEventHandler) HandlePressed() *Position {
 	if !inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		return false
+		return nil
 	}
 	x, y := ebiten.CursorPosition()
-	h.start = &Position{X: float32(x), Y: float32(y)}
-	return true
+	return &Position{X: float32(x), Y: float32(y)}
 }
 
-func (h *MouseEventHandler) HandleReleased() (*SwipeEvent, bool) {
+func (h *MouseEventHandler) HandleReleased() *Position {
 	if !inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
-		return nil, false
+		return nil
 	}
 	x, y := ebiten.CursorPosition()
-	pos := Position{X: float32(x), Y: float32(y)}
-	start := h.start.ToPoint(CELL_SIZE)
-	end := pos.ToPoint(CELL_SIZE)
-	h.start = nil
-	if start.Equals(end) {
-		return nil, true
-	}
-	return &SwipeEvent{start, end}, true
+	return &Position{X: float32(x), Y: float32(y)}
 }
 
 type TouchEventHandler struct {
-	start Position
-	id    ebiten.TouchID
+	id ebiten.TouchID
 }
 
-func (h *TouchEventHandler) HandlePressed() bool {
+func (h *TouchEventHandler) HandlePressed() *Position {
 	touchIDs := inpututil.AppendJustPressedTouchIDs([]ebiten.TouchID{})
 	if len(touchIDs) < 1 {
 		return false
@@ -131,23 +132,16 @@ func (h *TouchEventHandler) HandlePressed() bool {
 	// handle only first input
 	x, y := ebiten.TouchPosition(touchIDs[0])
 	h.id = touchIDs[0]
-	h.start = Position{X: float32(x), Y: float32(y)}
-	return true
+	return &Position{X: float32(x), Y: float32(y)}
 }
 
-func (h *TouchEventHandler) HandleReleased() (*SwipeEvent, bool) {
+func (h *TouchEventHandler) HandleReleased() *Position {
 	touchIDs := inpututil.AppendJustReleasedTouchIDs([]ebiten.TouchID{})
 	for _, touchID := range touchIDs {
 		if touchID == h.id {
 			x, y := ebiten.TouchPosition(touchID)
-			pos := Position{X: float32(x), Y: float32(y)}
-			start := h.start.ToPoint(CELL_SIZE)
-			end := pos.ToPoint(CELL_SIZE)
-			if start.Equals(end) {
-				return nil, true
-			}
-			return &SwipeEvent{start, end}, true
+			return &Position{X: float32(x), Y: float32(y)}
 		}
 	}
-	return nil, false
+	return nil
 }
