@@ -63,7 +63,6 @@ func (d *SwipeEventDispatcher) handlePressed() {
 			break
 		}
 	}
-	return
 }
 
 func (d *SwipeEventDispatcher) handleReleased() {
@@ -87,6 +86,10 @@ func (d *SwipeEventDispatcher) handleReleased() {
 
 func (d *SwipeEventDispatcher) Len() int {
 	return d.q.Len()
+}
+
+func (d *SwipeEventDispatcher) Push(ev *SwipeEvent) {
+	d.q.PushBack(ev)
 }
 
 func (d *SwipeEventDispatcher) Pop() *SwipeEvent {
