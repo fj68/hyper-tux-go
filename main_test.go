@@ -49,6 +49,7 @@ func TestGameState(t *testing.T) {
 	s.Board.Mapdata = m
 	s.Board.Actors[hyper.Red].Point = hyper.Point{X: 1, Y: 0}
 	s.Board.Actors[hyper.Blue].Point = hyper.Point{X: 1, Y: 3}
+	s.Board.Actors[hyper.Yellow].Point = hyper.Point{X: 5, Y: 2}
 
 	g := &main.StateMachine{Current: s}
 
@@ -63,6 +64,14 @@ func TestGameState(t *testing.T) {
 	s.SwipeEventDispatcher.Push(&main.SwipeEvent{
 		Start: hyper.Point{X: 1, Y: 3},
 		End:   hyper.Point{X: 1, Y: 0},
+	})
+	s.SwipeEventDispatcher.Push(&main.SwipeEvent{
+		Start: hyper.Point{X: 4, Y: 2},
+		End:   hyper.Point{X: 4, Y: 0},
+	})
+	s.SwipeEventDispatcher.Push(&main.SwipeEvent{
+		Start: hyper.Point{X: 5, Y: 2},
+		End:   hyper.Point{X: 3, Y: 2},
 	})
 
 	image := ebiten.NewImage(size.W*int(CELL_SIZE), size.H*int(CELL_SIZE))
