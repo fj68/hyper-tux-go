@@ -122,25 +122,9 @@ func (g *GameState) drawHistory(screen *ebiten.Image) {
 
 func (g *GameState) drawRecord(screen *ebiten.Image, record *hyper.Record) {
 	lineColor := Color(record.Color)
-	start := adjust(offset(record.Color), record.Start)
-	end := adjust(offset(record.Color), record.End)
+	start := adjust(Offset(record.Color), record.Start)
+	end := adjust(Offset(record.Color), record.End)
 	vector.StrokeLine(screen, start.X, start.Y, end.X, end.Y, 1, lineColor, false)
-}
-
-func offset(color hyper.Color) float32 {
-	switch color {
-	case hyper.Red:
-		return 0
-	case hyper.Green:
-		return 1
-	case hyper.Blue:
-		return -1
-	case hyper.Yellow:
-		return 2
-	case hyper.Black:
-		return -2
-	}
-	return 0
 }
 
 func adjust(n float32, p hyper.Point) Position {

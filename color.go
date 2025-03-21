@@ -21,3 +21,19 @@ func Color(c hyper.Color) color.Color {
 	}
 	return color.Transparent
 }
+
+func Offset(color hyper.Color) float32 {
+	switch color {
+	case hyper.Red:
+		return 0
+	case hyper.Green:
+		return 1
+	case hyper.Blue:
+		return -1
+	case hyper.Yellow:
+		return 2
+	case hyper.Black:
+		return -2
+	}
+	return 0
+}
