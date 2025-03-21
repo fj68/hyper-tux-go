@@ -35,11 +35,11 @@ var AllColors = []Color{
 }
 
 var ColorWeights = []int{
-	22,	// Red
-	22,	// Green
-	22,	// Blue
-	22,	// Yellow
-	12,	// Black
+	22, // Red
+	22, // Green
+	22, // Blue
+	22, // Yellow
+	12, // Black
 }
 
 func RandomColor() Color {

@@ -18,6 +18,10 @@ type History struct {
 	last    int
 }
 
+func (h *History) Records() []*Record {
+	return h.records
+}
+
 func (h *History) Push(r *Record) {
 	h.records = append(h.records[:h.last], r)
 	h.last++

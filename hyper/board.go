@@ -52,6 +52,10 @@ func (b *Board) NewGame() error {
 	return nil
 }
 
+func (b *Board) History() []*Record {
+	return b.history.Records()
+}
+
 func (b *Board) Steps() int {
 	return b.history.Len()
 }

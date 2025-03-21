@@ -47,12 +47,12 @@ func (g *GameState) handleInput() error {
 		actor, ok := g.Board.ActorAt(e.Start)
 		if !ok {
 			// TODO: this should not be an error
-			return fmt.Errorf("No actor at %+v", e.Start)
+			return fmt.Errorf("no actor at %+v", e.Start)
 		}
 		_, ok = g.Board.MoveActor(actor, e.Direction())
 		if !ok {
 			// TODO: this should not be an error
-			return fmt.Errorf("Unable to move: %+v to %s", actor, e.Direction())
+			return fmt.Errorf("unable to move: %+v to %s", actor, e.Direction())
 		}
 	}
 
@@ -71,6 +71,7 @@ func (g *GameState) Draw(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, 0, 0, float32(g.W)*CELL_SIZE, float32(g.H)*CELL_SIZE, color.White, false)
 	g.drawBoard(screen)
 	g.drawActors(screen)
+	g.drawHistory(screen)
 	g.drawGoal(screen)
 }
 
@@ -111,6 +112,57 @@ func (g *GameState) drawActor(screen *ebiten.Image, actor *hyper.Actor) {
 	p = p.Add(Position{halfCellSize, halfCellSize})
 	r := halfCellSize - 2
 	vector.DrawFilledCircle(screen, p.X, p.Y, r, Color(actor.Color), true)
+}
+
+func (g *GameState) drawHistory(screen *ebiten.Image) {
+	for _, record := range g.History() {
+		g.drawRecord(screen, record)
+	}
+}
+
+func (g *GameState) drawRecord(screen *ebiten.Image, record *hyper.Record) {
+	lineColor := Color(record.Color)
+	offset := colorOffset(record.Color)
+	start, end := adjustOffset(record.Direction, offset, record.Start, record.End)
+	vector.StrokeLine(screen, start.X, start.Y, end.X, end.Y, 1, lineColor, false)
+}
+
+func colorOffset(color hyper.Color) float32 {
+	switch color {
+	case hyper.Red:
+		return 0
+	case hyper.Green:
+		return 1
+	case hyper.Blue:
+		return -1
+	case hyper.Yellow:
+		return 2
+	case hyper.Black:
+		return -2
+	}
+	return 0
+}
+
+func adjustOffset(d hyper.Direction, offset float32, s, e hyper.Point) (Position, Position) {
+	half := CELL_SIZE / 2
+	start, end := NewPosition(s, CELL_SIZE), NewPosition(e, CELL_SIZE)
+	switch d {
+	case hyper.North:
+		fallthrough
+	case hyper.South:
+		start.Y += offset + half
+		end.Y += offset + half
+		start.X += offset + half
+		end.X += offset + half
+	case hyper.East:
+		fallthrough
+	case hyper.West:
+		start.X += offset + half
+		end.X += offset + half
+		start.Y += offset + half
+		end.Y += offset + half
+	}
+	return start, end
 }
 
 func (g *GameState) drawGoal(screen *ebiten.Image) {
