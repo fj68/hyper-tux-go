@@ -71,17 +71,17 @@ func (d *SwipeEventDispatcher) handleReleased() {
 	if pos == nil {
 		return
 	}
-	
+
 	start := d.start.ToPoint(CELL_SIZE)
 	end := pos.ToPoint(CELL_SIZE)
-	
+
 	d.start = nil
 	d.currentHandler = nil
-	
+
 	if start.Equals(end) {
 		return
 	}
-	
+
 	d.q.PushBack(&SwipeEvent{start, end})
 }
 
@@ -102,7 +102,7 @@ func (d *SwipeEventDispatcher) Pop() *SwipeEvent {
 	return ev
 }
 
-type MouseEventHandler struct {}
+type MouseEventHandler struct{}
 
 func (h *MouseEventHandler) HandlePressed() *Position {
 	if !inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -127,7 +127,7 @@ type TouchEventHandler struct {
 func (h *TouchEventHandler) HandlePressed() *Position {
 	touchIDs := inpututil.AppendJustPressedTouchIDs([]ebiten.TouchID{})
 	if len(touchIDs) < 1 {
-		return false
+		return nil
 	}
 	// handle only first input
 	x, y := ebiten.TouchPosition(touchIDs[0])
