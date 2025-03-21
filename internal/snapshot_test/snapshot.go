@@ -1,8 +1,6 @@
-//go:build guitests
-// +build guitests
-// 
 // from:
-//   https://zenn.dev/yktakaha4/articles/visual_regression_test_in_ebitengine
+//
+//	https://zenn.dev/yktakaha4/articles/visual_regression_test_in_ebitengine
 package snapshot_test
 
 import (
