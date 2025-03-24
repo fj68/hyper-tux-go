@@ -7,6 +7,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.8.6
 	github.com/olegfedoseev/image-diff v0.0.0-20171116094004-897a4e73dfd6
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
+	golang.org/x/image v0.25.0
 )
 
 require (
@@ -15,7 +16,6 @@ require (
 	github.com/ebitengine/purego v0.8.0 // indirect
 	github.com/go-text/typesetting v0.2.0 // indirect
 	github.com/jezek/xgb v1.1.1 // indirect
-	golang.org/x/image v0.25.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
