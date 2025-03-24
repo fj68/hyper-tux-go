@@ -7,7 +7,26 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
+func loadButtonImage() (*widget.ButtonImage, error) {
+
+	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
+
+	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
+
+	pressed := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
+
+	return &widget.ButtonImage{
+		Idle:    idle,
+		Hover:   hover,
+		Pressed: pressed,
+	}, nil
+}
+
 func createButton(r *ResourceLoader, label string) (*widget.Button, error) {
+	img, err := loadButtonImage()
+	if err != nil {
+		return nil, err
+	}
 	font, err := r.FontFace(12)
 	if err != nil {
 		return nil, err
@@ -19,9 +38,7 @@ func createButton(r *ResourceLoader, label string) (*widget.Button, error) {
 				VerticalPosition:   widget.AnchorLayoutPositionCenter,
 			}),
 		),
-		widget.ButtonOpts.Image(&widget.ButtonImage{
-			Idle: image.NewNineSliceColor(color.White),
-		}),
+		widget.ButtonOpts.Image(img),
 		widget.ButtonOpts.Text(label, font, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xff, 0xff, 0xff, 0xff},
 		}),
