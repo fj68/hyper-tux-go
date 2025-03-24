@@ -30,6 +30,14 @@ func Map[T, U any](xs []T, f func(T) U) []U {
 	return rs
 }
 
+func Mapi[T, U any](xs []T, f func(int) U) []U {
+	rs := make([]U, len(xs))
+	for i := range xs {
+		rs[i] = f(i)
+	}
+	return rs
+}
+
 func Filter[T any](xs []T, f func(T) bool) []T {
 	rs := make([]T, 0, len(xs))
 	for _, x := range xs {
@@ -46,6 +54,17 @@ func FilterMap[T, U any](xs []T, f func(T) bool, m func(T) U) []U {
 		if f(x) {
 			rs = append(rs, m(x))
 		}
+	}
+	return rs
+}
+
+func Flat[T any](xs [][]T) []T {
+	if len(xs) < 1 {
+		return nil
+	}
+	rs := make([]T, 0, len(xs)*len(xs[0]))
+	for _, x := range xs {
+		rs = append(rs, x...)
 	}
 	return rs
 }
