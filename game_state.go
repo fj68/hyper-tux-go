@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"log"
 
+	"github.com/ebitenui/ebitenui"
 	"github.com/fj68/hyper-tux-go/hyper"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -13,6 +14,7 @@ import (
 type GameState struct {
 	*hyper.Board
 	*SwipeEventDispatcher
+	UI *ebitenui.UI
 }
 
 func NewGameState(size hyper.Size) (*GameState, error) {
@@ -64,6 +66,8 @@ func (g *GameState) Update() error {
 		return err
 	}
 
+	g.UI.Update()
+
 	return nil
 }
 
@@ -73,6 +77,7 @@ func (g *GameState) Draw(screen *ebiten.Image) {
 	g.drawActors(screen)
 	g.drawHistory(screen)
 	g.drawGoal(screen)
+	g.UI.Draw(screen)
 }
 
 func (g *GameState) drawBoard(screen *ebiten.Image) {
