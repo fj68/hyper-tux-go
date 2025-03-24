@@ -47,7 +47,7 @@ func main() {
 
 	game := &Game{&StateMachine{Current: s}}
 
-	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowSize(640, 640)
 	ebiten.SetWindowTitle("Hyper Tux")
 
 	if err := ebiten.RunGame(game); err != nil {

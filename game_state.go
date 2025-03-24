@@ -83,12 +83,23 @@ func (g *GameState) Update() error {
 }
 
 func (g *GameState) Draw(screen *ebiten.Image) {
-	vector.DrawFilledRect(screen, 0, 0, float32(g.W)*CELL_SIZE, float32(g.H)*CELL_SIZE, color.White, false)
+	vector.DrawFilledRect(screen, 0, 0, 640, 640, color.White, false)
+
+	g.drawStage(screen)
+	stageHeight := g.Board.H * int(CELL_SIZE)
+
+	ui := ebiten.NewImage(640, 640-stageHeight)
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(0, float64(stageHeight))
+	g.UI.Draw(ui)
+	screen.DrawImage(ui, op)
+}
+
+func (g *GameState) drawStage(screen *ebiten.Image) {
 	g.drawBoard(screen)
 	g.drawActors(screen)
 	g.drawHistory(screen)
 	g.drawGoal(screen)
-	g.UI.Draw(screen)
 }
 
 func (g *GameState) drawBoard(screen *ebiten.Image) {
