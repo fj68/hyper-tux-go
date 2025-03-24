@@ -1,31 +1,24 @@
 package hyper
 
 import (
-	"fmt"
 	"math/rand"
 )
 
-type PlacementAlgorithm func(*Board) (Point, error)
+type PlacementAlgorithm func(*Board) Point
 
 type Placement struct {
 	Actor PlacementAlgorithm
 	Goal  PlacementAlgorithm
 }
 
-func PlaceAtRandom(b *Board) (Point, error) {
-	for range 50 {
-		pos, ok := b.RandomPlace()
-		_, exists := b.ActorAt(pos)
-		c := b.Mapdata.Center()
-		if ok && !exists && !pos.Equals(b.Goal.Point) && !c.Contains(pos) {
-			return pos, nil
-		}
+func RandomPlace(b *Board) Point {
+	return Point{
+		b.rand.Intn(b.Mapdata.Size.W),
+		b.rand.Intn(b.Mapdata.Size.H),
 	}
-	var zero Point
-	return zero, fmt.Errorf("unable to place goal")
 }
 
-func PlaceAtRandomNearByWalls(b *Board) (Point, error) {
+func RandomPlaceNearByWalls(b *Board) Point {
 	walls := []Point{}
 	for y, row := range b.Mapdata.HWalls {
 		for _, x := range row {
@@ -37,15 +30,6 @@ func PlaceAtRandomNearByWalls(b *Board) (Point, error) {
 			walls = append(walls, Point{x, y})
 		}
 	}
-	for range 50 {
-		wall := walls[rand.Intn(len(walls))]
-		pos := wall.Add(Point{X: rand.Intn(2) - 1, Y: rand.Intn(2) - 1})
-		_, exists := b.ActorAt(pos)
-		c := b.Mapdata.Center()
-		if !exists && !b.Goal.Point.Equals(pos) && !c.Contains(pos) {
-			return pos, nil
-		}
-	}
-	var zero Point
-	return zero, fmt.Errorf("unable to place goal")
+	wall := walls[rand.Intn(len(walls))]
+	return wall.Add(Point{X: rand.Intn(2) - 1, Y: rand.Intn(2) - 1})
 }

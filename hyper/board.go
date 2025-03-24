@@ -1,6 +1,7 @@
 package hyper
 
 import (
+	"fmt"
 	"log"
 	"maps"
 	"math/rand"
@@ -53,28 +54,36 @@ func (b *Board) NewGame() error {
 	return nil
 }
 
+func (b *Board) SomethingExists(pos Point) bool {
+	_, exists := b.ActorAt(pos)
+	c := b.Mapdata.Center()
+	return exists || pos.Equals(b.Goal.Point) || c.Contains(pos)
+}
+
 func (b *Board) PlaceActor(color Color) error {
-	pos, err := b.Placement.Actor(b)
-	if err != nil {
-		return err
+	for range 50 {
+		pos := b.Placement.Actor(b)
+		if !b.SomethingExists(pos) {
+			b.Actors[color].MoveTo(pos)
+			return nil
+		}
 	}
-	if a, ok := b.Actors[color]; ok {
-		a.MoveTo(pos)
-	}
-	b.Actors[color] = &Actor{color, pos}
-	return nil
+	return fmt.Errorf("unable to place %s actor", color)
 }
 
 func (b *Board) PlaceGoal() error {
-	pos, err := b.Placement.Goal(b)
-	if err != nil {
-		return err
+	var pos Point
+	for range 50 {
+		pos = b.Placement.Goal(b)
+		if !b.SomethingExists(pos) {
+			b.Goal = Goal{
+				Color: RandomColor(),
+				Point: pos,
+			}
+			return nil
+		}
 	}
-	b.Goal = Goal{
-		Color: RandomColor(),
-		Point: pos,
-	}
-	return nil
+	return fmt.Errorf("unable to place goal")
 }
 
 func (b *Board) History() []*Record {
@@ -95,20 +104,6 @@ func (b *Board) ActorAt(p Point) (actor *Actor, exists bool) {
 	for _, actor = range b.Actors {
 		if actor.Point.Equals(p) {
 			return actor, true
-		}
-	}
-	return
-}
-
-func (b *Board) RandomPlace() (p Point, ok bool) {
-	for range 50 {
-		p = Point{
-			b.rand.Intn(b.Mapdata.Size.W),
-			b.rand.Intn(b.Mapdata.Size.H),
-		}
-		c := b.Mapdata.Center()
-		if !c.Contains(p) {
-			return p, true
 		}
 	}
 	return
