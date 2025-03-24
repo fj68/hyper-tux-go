@@ -1,7 +1,6 @@
 package hyper
 
 import (
-	"fmt"
 	"log"
 	"maps"
 	"math/rand"
@@ -14,6 +13,7 @@ import (
 type Board struct {
 	rand    *rand.Rand
 	history *History
+	Placement
 	Goal
 	*Mapdata
 	Actors       map[Color]*Actor
@@ -21,18 +21,19 @@ type Board struct {
 	Goaled       bool
 }
 
-func NewBoard(size Size) (*Board, error) {
+func NewBoard(size Size, p Placement) (*Board, error) {
 	b := &Board{
-		rand:    rand.New(rand.NewSource(time.Now().Unix())),
-		history: &History{},
-		Actors:  map[Color]*Actor{},
-		Mapdata: NewMapdata(size),
+		rand:      rand.New(rand.NewSource(time.Now().Unix())),
+		history:   &History{},
+		Actors:    map[Color]*Actor{},
+		Mapdata:   NewMapdata(size),
+		Placement: p,
 	}
 
 	// place actors
 	for _, color := range AllColors {
 		b.Actors[color] = &Actor{Color: color, Point: Point{0, 0}}
-		if err := b.PlaceActorAtRandom(color); err != nil {
+		if err := b.PlaceActor(color); err != nil {
 			return nil, err
 		}
 	}
@@ -45,10 +46,34 @@ func NewBoard(size Size) (*Board, error) {
 func (b *Board) NewGame() error {
 	b.Goaled = false
 	b.history.Reset()
-	if err := b.PlaceGoalAtRandom(); err != nil {
+	if err := b.PlaceGoal(); err != nil {
 		return err
 	}
 	log.Println(b.Goal)
+	return nil
+}
+
+func (b *Board) PlaceActor(color Color) error {
+	pos, err := b.Placement.Actor(b)
+	if err != nil {
+		return err
+	}
+	if a, ok := b.Actors[color]; ok {
+		a.MoveTo(pos)
+	}
+	b.Actors[color] = &Actor{color, pos}
+	return nil
+}
+
+func (b *Board) PlaceGoal() error {
+	pos, err := b.Placement.Goal(b)
+	if err != nil {
+		return err
+	}
+	b.Goal = Goal{
+		Color: RandomColor(),
+		Point: pos,
+	}
 	return nil
 }
 
@@ -87,36 +112,6 @@ func (b *Board) RandomPlace() (p Point, ok bool) {
 		}
 	}
 	return
-}
-
-func (b *Board) PlaceActorAtRandom(color Color) error {
-	_, ok := b.Actors[color]
-	if !ok {
-		return fmt.Errorf("unable to find actor of color: %s", color)
-	}
-
-	for range 50 {
-		pos, ok := b.RandomPlace()
-		_, exists := b.ActorAt(pos)
-		if ok && !exists {
-			b.Actors[color].MoveTo(pos)
-			return nil
-		}
-	}
-	return fmt.Errorf("unable to place actor: %s", color)
-}
-
-func (b *Board) PlaceGoalAtRandom() error {
-	for range 50 {
-		pos, ok := b.RandomPlace()
-		_, exists := b.ActorAt(pos)
-		if ok && !exists && !pos.Equals(b.Goal.Point) {
-			color := RandomColor()
-			b.Goal = Goal{color, pos}
-			return nil
-		}
-	}
-	return fmt.Errorf("unable to place goal")
 }
 
 func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool) {

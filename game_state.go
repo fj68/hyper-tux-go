@@ -20,7 +20,7 @@ type GameState struct {
 }
 
 func NewGameState(size hyper.Size) (*GameState, error) {
-	b, err := hyper.NewBoard(size)
+	b, err := hyper.NewBoard(size, hyper.Placement{Actor: hyper.PlaceAtRandom, Goal: hyper.PlaceAtRandomNearByWalls})
 	if err != nil {
 		return nil, err
 	}

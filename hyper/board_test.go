@@ -132,7 +132,7 @@ func TestBoard_NextStop(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.Name, func(t *testing.T) {
-			board, err := hyper.NewBoard(size)
+			board, err := hyper.NewBoard(size, hyper.Placement{Actor: hyper.PlaceAtRandom, Goal: hyper.PlaceAtRandomNearByWalls})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -249,7 +249,7 @@ func TestBoard_MoveActor(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.Name, func(t *testing.T) {
-			board, err := hyper.NewBoard(hyper.Size{16, 16})
+			board, err := hyper.NewBoard(hyper.Size{16, 16}, hyper.Placement{Actor: hyper.PlaceAtRandom, Goal: hyper.PlaceAtRandomNearByWalls})
 			if err != nil {
 				t.Fatal(err)
 			}
