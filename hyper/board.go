@@ -60,6 +60,12 @@ func (b *Board) Steps() int {
 	return b.history.Len()
 }
 
+func (b *Board) PlaceActors(actors map[Color]Point) {
+	for c, p := range actors {
+		b.Actors[c] = &Actor{c, p}
+	}
+}
+
 func (b *Board) ActorAt(p Point) (actor *Actor, exists bool) {
 	for _, actor = range b.Actors {
 		if actor.Point.Equals(p) {
