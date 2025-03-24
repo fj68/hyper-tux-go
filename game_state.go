@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/widget"
 	"github.com/fj68/hyper-tux-go/hyper"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -14,6 +15,7 @@ import (
 type GameState struct {
 	*hyper.Board
 	*SwipeEventDispatcher
+	*ResourceLoader
 	UI *ebitenui.UI
 }
 
@@ -27,12 +29,21 @@ func NewGameState(size hyper.Size) (*GameState, error) {
 	for _, actor := range board.Actors {
 		log.Println(actor)
 	}
+
+	r := NewResourceLoader()
+	ui, err := createUI(r)
+	if err != nil {
+		return nil, err
+	}
+
 	return &GameState{
 		Board: board,
 		SwipeEventDispatcher: NewSwipeEventDispather(
 			&MouseEventHandler{},
 			&TouchEventHandler{},
 		),
+		ResourceLoader: r,
+		UI:             ui,
 	}, nil
 }
 
@@ -141,4 +152,35 @@ func adjust(n float32, p hyper.Point) Position {
 func (g *GameState) drawGoal(screen *ebiten.Image) {
 	goal := g.Board.Goal
 	vector.DrawFilledRect(screen, float32(goal.X)*CELL_SIZE, float32(goal.Y)*CELL_SIZE, CELL_SIZE-1, CELL_SIZE-1, Color(goal.Color), false)
+}
+
+func createUI(r *ResourceLoader) (*ebitenui.UI, error) {
+	root := widget.NewContainer(
+		widget.ContainerOpts.Layout(
+			widget.NewAnchorLayout(
+				widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(5)),
+			),
+		),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionEnd,
+			}),
+		),
+	)
+
+	undoBtn, err := createButton(r, "Undo")
+	if err != nil {
+		return nil, err
+	}
+	root.AddChild(undoBtn)
+
+	redoBtn, err := createButton(r, "Redo")
+	if err != nil {
+		return nil, err
+	}
+	root.AddChild(redoBtn)
+
+	return &ebitenui.UI{
+		Container: root,
+	}, nil
 }
