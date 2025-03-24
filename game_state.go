@@ -20,24 +20,24 @@ type GameState struct {
 }
 
 func NewGameState(size hyper.Size) (*GameState, error) {
-	board, err := hyper.NewBoard(size)
+	b, err := hyper.NewBoard(size)
 	if err != nil {
 		return nil, err
 	}
 	// debug
-	board.Actors[hyper.Black].Point = hyper.Point{X: 0, Y: 0}
-	for _, actor := range board.Actors {
+	b.Actors[hyper.Black].Point = hyper.Point{X: 0, Y: 0}
+	for _, actor := range b.Actors {
 		log.Println(actor)
 	}
 
 	r := NewResourceLoader()
-	ui, err := createUI(r)
+	ui, err := createUI(r, b)
 	if err != nil {
 		return nil, err
 	}
 
 	return &GameState{
-		Board: board,
+		Board: b,
 		SwipeEventDispatcher: NewSwipeEventDispather(
 			&MouseEventHandler{},
 			&TouchEventHandler{},
@@ -154,7 +154,7 @@ func (g *GameState) drawGoal(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, float32(goal.X)*CELL_SIZE, float32(goal.Y)*CELL_SIZE, CELL_SIZE-1, CELL_SIZE-1, Color(goal.Color), false)
 }
 
-func createUI(r *ResourceLoader) (*ebitenui.UI, error) {
+func createUI(r *ResourceLoader, b *hyper.Board) (*ebitenui.UI, error) {
 	root := widget.NewContainer(
 		widget.ContainerOpts.Layout(
 			widget.NewAnchorLayout(
@@ -172,13 +172,28 @@ func createUI(r *ResourceLoader) (*ebitenui.UI, error) {
 	if err != nil {
 		return nil, err
 	}
+	undoBtn.ClickedEvent.AddHandler(func(_ interface{}) {
+		b.Undo()
+	})
 	root.AddChild(undoBtn)
 
 	redoBtn, err := createButton(r, "Redo")
 	if err != nil {
 		return nil, err
 	}
+	redoBtn.ClickedEvent.AddHandler(func(_ interface{}) {
+		b.Redo()
+	})
 	root.AddChild(redoBtn)
+
+	resetBtn, err := createButton(r, "Reset")
+	if err != nil {
+		return nil, err
+	}
+	resetBtn.ClickedEvent.AddHandler(func(_ interface{}) {
+		b.Reset()
+	})
+	root.AddChild(resetBtn)
 
 	return &ebitenui.UI{
 		Container: root,
