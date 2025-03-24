@@ -16,7 +16,8 @@ func PlaceAtRandom(b *Board) (Point, error) {
 	for range 50 {
 		pos, ok := b.RandomPlace()
 		_, exists := b.ActorAt(pos)
-		if ok && !exists && !pos.Equals(b.Goal.Point) {
+		c := b.Mapdata.Center()
+		if ok && !exists && !pos.Equals(b.Goal.Point) && !c.Contains(pos) {
 			return pos, nil
 		}
 	}
@@ -40,7 +41,8 @@ func PlaceAtRandomNearByWalls(b *Board) (Point, error) {
 		wall := walls[rand.Intn(len(walls))]
 		pos := wall.Add(Point{X: rand.Intn(2) - 1, Y: rand.Intn(2) - 1})
 		_, exists := b.ActorAt(pos)
-		if !exists && !b.Goal.Point.Equals(pos) {
+		c := b.Mapdata.Center()
+		if !exists && !b.Goal.Point.Equals(pos) && !c.Contains(pos) {
 			return pos, nil
 		}
 	}
