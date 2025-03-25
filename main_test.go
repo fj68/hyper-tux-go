@@ -4,7 +4,6 @@
 package main_test
 
 import (
-	"image/color"
 	"testing"
 
 	"github.com/fj68/hyper-tux-go"
@@ -74,8 +73,7 @@ func TestGameState(t *testing.T) {
 		End:   hyper.Point{X: 3, Y: 2},
 	})
 
-	image := ebiten.NewImage(size.W*int(CELL_SIZE), size.H*int(CELL_SIZE))
-	image.Fill(color.Black)
+	image := ebiten.NewImage(main.SCREEN_WIDTH, main.SCREEN_HEIGHT)
 
 	if err := g.Update(); err != nil {
 		t.Error(err)
