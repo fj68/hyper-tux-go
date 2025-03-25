@@ -6,13 +6,15 @@ import (
 )
 
 const CELL_SIZE float32 = 24 // px
+const SCREEN_WIDTH = 640     // px
+const SCREEN_HEIGHT = 640    // px
 
 type Game struct {
 	State
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 640, 480
+	return SCREEN_WIDTH, SCREEN_HEIGHT
 }
 
 func main() {
@@ -47,7 +49,7 @@ func main() {
 
 	game := &Game{&StateMachine{Current: s}}
 
-	ebiten.SetWindowSize(640, 640)
+	ebiten.SetWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT)
 	ebiten.SetWindowTitle("Hyper Tux")
 
 	if err := ebiten.RunGame(game); err != nil {

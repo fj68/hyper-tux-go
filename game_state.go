@@ -83,7 +83,7 @@ func (g *GameState) Update() error {
 }
 
 func (g *GameState) clear(screen *ebiten.Image) {
-	vector.DrawFilledRect(screen, 0, 0, 640, 640, color.White, false)
+	screen.Fill(color.White)
 }
 
 func (g *GameState) Draw(screen *ebiten.Image) {
@@ -92,7 +92,7 @@ func (g *GameState) Draw(screen *ebiten.Image) {
 	g.drawStage(screen)
 	stageHeight := g.Board.H * int(CELL_SIZE)
 
-	ui := ebiten.NewImage(640, 640-stageHeight)
+	ui := ebiten.NewImage(SCREEN_WIDTH, SCREEN_HEIGHT-stageHeight)
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(0, float64(stageHeight))
 	g.UI.Draw(ui)
