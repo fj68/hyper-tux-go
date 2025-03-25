@@ -82,8 +82,12 @@ func (g *GameState) Update() error {
 	return nil
 }
 
-func (g *GameState) Draw(screen *ebiten.Image) {
+func (g *GameState) clear(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, 0, 0, 640, 640, color.White, false)
+}
+
+func (g *GameState) Draw(screen *ebiten.Image) {
+	g.clear(screen)
 
 	g.drawStage(screen)
 	stageHeight := g.Board.H * int(CELL_SIZE)
