@@ -1,6 +1,22 @@
 # hyper-tux-go
 
+## Installation
+
+```console
+git clone git@github.com/fj68/hyper-tux-go
+```
+
+## Run
+
+```console
+go run main.go
+```
+
 ## Development
+
+Recommended to use GitHub Codespaces online or Docker on a local machine using [Dockerfile in this repository](Dockerfile).
+
+Following instructions assume that you are using GitHub Codespaces.
 
 ### Unit tests
 
