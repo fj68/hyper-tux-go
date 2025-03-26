@@ -7,7 +7,6 @@ import (
 	_ "image/png"
 	"io"
 	"os"
-	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -56,21 +55,27 @@ func (r *ResourceLoader) Image(path string) (*ebiten.Image, error) {
 	return i, err
 }
 
-func (r *ResourceLoader) FontFace(size int) (text.Face, error) {
-	name := "font-" + strconv.Itoa(size)
+func (r *ResourceLoader) FontFaceSource(name string, data io.Reader) (*text.GoTextFaceSource, error) {
 	if v, ok := r.cache[name]; ok {
-		if f, ok := v.(text.Face); ok {
+		if f, ok := v.(*text.GoTextFaceSource); ok {
 			return f, nil
 		}
 	}
-	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
+	s, err := text.NewGoTextFaceSource(data)
 	if err != nil {
 		return nil, err
 	}
-	f := &text.GoTextFace{
+	r.cache[name] = s
+	return s, nil
+}
+
+func (r *ResourceLoader) FontFace(size int) (text.Face, error) {
+	s, err := r.FontFaceSource("goregular.TTF", bytes.NewReader(goregular.TTF))
+	if err != nil {
+		return nil, err
+	}
+	return &text.GoTextFace{
 		Source: s,
 		Size:   float64(size),
-	}
-	r.cache[name] = f
-	return f, nil
+	}, nil
 }
