@@ -49,3 +49,19 @@ UPDATE_SHAPSHOT=1 go test -tags=guitests
 ```
 
 Note: Currently `TestGameState` always fails because it places actors at random and thus the result differs on each tests.
+
+### Release
+
+Assuming on a GitHub Codespaces (Linux).
+
+#### Linux
+
+```console
+go build -o bin/main.out
+```
+
+#### Windows
+
+```Console
+GOOS=windows GOARCH=amd64 go build -ldflags -H=windowsgui -o bin/main.exe
+```
