@@ -20,7 +20,7 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 	}, nil
 }
 
-func createButton(r *ResourceLoader, label string) (*widget.Button, error) {
+func createButton(r *ResourceLoader, label string, onclick widget.ButtonClickedHandlerFunc) (*widget.Button, error) {
 	img, err := loadButtonImage()
 	if err != nil {
 		return nil, err
@@ -31,21 +31,18 @@ func createButton(r *ResourceLoader, label string) (*widget.Button, error) {
 	}
 	b := widget.NewButton(
 		widget.ButtonOpts.WidgetOpts(
-			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-				HorizontalPosition: widget.AnchorLayoutPositionCenter,
-				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+				Stretch:  false,
 			}),
+			widget.WidgetOpts.MinSize(76, 32),
 		),
 		widget.ButtonOpts.Image(img),
 		widget.ButtonOpts.Text(label, font, &widget.ButtonTextColor{
 			Idle: color.NRGBA{R: 0, G: 0, B: 0, A: 255},
 		}),
-		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   30,
-			Right:  30,
-			Top:    5,
-			Bottom: 5,
-		}),
+		widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
+		widget.ButtonOpts.ClickedHandler(onclick),
 	)
 	return b, nil
 }

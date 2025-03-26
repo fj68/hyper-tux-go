@@ -73,7 +73,7 @@ func TestGameState(t *testing.T) {
 		End:   hyper.Point{X: 3, Y: 2},
 	})
 
-	image := ebiten.NewImage(main.SCREEN_WIDTH, main.SCREEN_HEIGHT)
+	image := ebiten.NewImage(640, 640)
 
 	if err := g.Update(); err != nil {
 		t.Error(err)
