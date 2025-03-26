@@ -12,6 +12,12 @@ git clone git@github.com/fj68/hyper-tux-go
 go run main.go
 ```
 
+Or, to make Web version:
+
+```console
+go run github.com/eihigh/wasmnow@latest -b -d docs
+```
+
 ## Development
 
 Recommended to use GitHub Codespaces online or Docker on a local machine using [Dockerfile in this repository](Dockerfile).
