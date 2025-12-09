@@ -1,5 +1,19 @@
 # hyper-tux-go
 
+## Description
+
+Hyper Tux is a small puzzle-like game played on a 16×16 grid. Players control colored actors by swiping (mouse or touch) to move them across the board and aim to reach target goal cells with the minimum movements. The game uses Ebiten for cross-platform rendering and supports desktop and WebAssembly builds for now.
+
+The project includes utilities for random placement, movement history (undo/redo), and snapshot-based visual regression tests used during development.
+
+### Key features
+
+- Random placement of actors and goals
+- Supports swipe by mouse and one-finger touch input
+- Undo / Redo with move history visualization
+- Ebiten-based crossplatform rendering
+- Snapshot-based visual regression tests for UI stability
+
 ## Installation
 
 ```console
