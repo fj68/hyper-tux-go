@@ -2,6 +2,7 @@ package hyper
 
 type Color int
 
+// Color constants for game actors and goals.
 const (
 	Red Color = iota
 	Green
@@ -10,6 +11,7 @@ const (
 	Black
 )
 
+// String returns the string representation of the color.
 func (c Color) String() string {
 	switch c {
 	case Red:
@@ -26,6 +28,7 @@ func (c Color) String() string {
 	return "unknown Color"
 }
 
+// AllColors is a slice containing all valid Color values.
 var AllColors = []Color{
 	Red,
 	Green,
@@ -34,6 +37,7 @@ var AllColors = []Color{
 	Black,
 }
 
+// ColorWeights defines the relative probability weights for random color selection.
 var ColorWeights = []int{
 	22, // Red
 	22, // Green
@@ -42,6 +46,7 @@ var ColorWeights = []int{
 	12, // Black
 }
 
+// RandomColor returns a random Color selected using weighted probabilities.
 func RandomColor() Color {
 	return Choice(AllColors, ColorWeights)
 }

@@ -1,3 +1,6 @@
+// Package snapshot_test provides visual regression testing utilities for Ebiten games.
+// It captures and compares game renderings to detect visual regressions.
+//
 // from:
 //
 //	https://zenn.dev/yktakaha4/articles/visual_regression_test_in_ebitengine
@@ -24,6 +27,8 @@ const (
 	SnapshotErrorThreshold = 0.0
 )
 
+// CheckSnapshot performs visual regression testing by comparing the actual image to an expected snapshot.
+// It creates or updates snapshot files and reports any visual differences.
 func CheckSnapshot(t *testing.T, actualImage *ebiten.Image) error {
 	_, callerSourceFileName, _, ok := runtime.Caller(1)
 	if !ok {

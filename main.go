@@ -1,3 +1,5 @@
+// Package main provides the entrypoint for the Hyper Tux game.
+// It initializes the game state, sets up the window and runs the game loop.
 package main
 
 import (
@@ -5,15 +7,21 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// CONTROLS_HEIGHT is the height of the controls panel in pixels including padding.
 const CONTROLS_HEIGHT = 64 + 16            // px incl. padding
+// STAGE_WIDTH is the width of the game board in pixels.
 const STAGE_WIDTH = 640 - CONTROLS_HEIGHT  // px
+// STAGE_HEIGHT is the height of the game board in pixels.
 const STAGE_HEIGHT = 640 - CONTROLS_HEIGHT // px
+// CELL_SIZE is the width and height of each cell in the grid in pixels.
 const CELL_SIZE float32 = STAGE_WIDTH / 16
 
+// Game is the main game struct that implements ebiten.Game interface.
 type Game struct {
 	State
 }
 
+// Layout returns the logical screen dimensions for the game window.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 640, 640
 }

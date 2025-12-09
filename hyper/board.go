@@ -1,3 +1,7 @@
+// Package hyper contains the core game model types and utilities used by
+// the Hyper Tux game. It defines geometric primitives, board/map data,
+// actors, goals, and related algorithms such as movement, placement and
+// history tracking.
 package hyper
 
 import (
@@ -11,6 +15,7 @@ import (
 	"github.com/fj68/hyper-tux-go/internal/slicetools"
 )
 
+// Board represents the game board with actors, walls, and goals.
 type Board struct {
 	rand    *rand.Rand
 	history *History
@@ -22,6 +27,7 @@ type Board struct {
 	Goaled       bool
 }
 
+// NewBoard creates and initializes a new game board with the given size and placement algorithms.
 func NewBoard(size Size, p Placement) (*Board, error) {
 	b := &Board{
 		rand:      rand.New(rand.NewSource(time.Now().Unix())),
@@ -44,6 +50,7 @@ func NewBoard(size Size, p Placement) (*Board, error) {
 	return b, nil
 }
 
+// NewGame resets the board for a new game, clearing history and placing a new goal.
 func (b *Board) NewGame() error {
 	b.Goaled = false
 	b.history.Reset()
@@ -54,12 +61,14 @@ func (b *Board) NewGame() error {
 	return nil
 }
 
+// SomethingExists returns true if an actor, goal, or center box exists at the given position.
 func (b *Board) SomethingExists(pos Point) bool {
 	_, exists := b.ActorAt(pos)
 	c := b.Mapdata.Center()
 	return exists || pos.Equals(b.Goal.Point) || c.Contains(pos)
 }
 
+// PlaceActor places an actor on a random unoccupied position on the board.
 func (b *Board) PlaceActor(color Color) error {
 	for range 50 {
 		pos := b.Placement.Actor(b)
@@ -71,6 +80,7 @@ func (b *Board) PlaceActor(color Color) error {
 	return fmt.Errorf("unable to place %s actor", color)
 }
 
+// PlaceGoal places a goal with a random color on a random unoccupied position.
 func (b *Board) PlaceGoal() error {
 	var pos Point
 	for range 50 {
@@ -86,20 +96,24 @@ func (b *Board) PlaceGoal() error {
 	return fmt.Errorf("unable to place goal")
 }
 
+// History returns all recorded moves on this board.
 func (b *Board) History() []*Record {
 	return b.history.Records()
 }
 
+// Steps returns the number of moves taken so far.
 func (b *Board) Steps() int {
 	return b.history.Len()
 }
 
+// PlaceActors positions multiple actors at specific locations.
 func (b *Board) PlaceActors(actors map[Color]Point) {
 	for c, p := range actors {
 		b.Actors[c] = &Actor{c, p}
 	}
 }
 
+// ActorAt returns the actor at the given position, if any.
 func (b *Board) ActorAt(p Point) (actor *Actor, exists bool) {
 	for _, actor = range b.Actors {
 		if actor.Point.Equals(p) {
@@ -109,6 +123,7 @@ func (b *Board) ActorAt(p Point) (actor *Actor, exists bool) {
 	return
 }
 
+// MoveActor moves an actor in the given direction and returns success and goal-reached status.
 func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool) {
 	pos = b.NextStop(actor.Point, d)
 	if actor.Point.Equals(pos) {
@@ -131,12 +146,14 @@ func (b *Board) MoveActor(actor *Actor, d Direction) (pos Point, ok bool) {
 	return
 }
 
+// Reset undoes all moves, returning the board to its initial state.
 func (b *Board) Reset() {
 	for b.history.Len() > 0 {
 		b.Undo()
 	}
 }
 
+// Undo reverts the last move.
 func (b *Board) Undo() {
 	r := b.history.Undo()
 	if r == nil {
@@ -146,6 +163,7 @@ func (b *Board) Undo() {
 	b.Goaled = false
 }
 
+// Redo replays the next move in history.
 func (b *Board) Redo() {
 	r := b.history.Redo()
 	if r == nil {
@@ -157,6 +175,7 @@ func (b *Board) Redo() {
 	}
 }
 
+// NextStop calculates where an actor moving in a direction would stop.
 func (b *Board) NextStop(current Point, d Direction) Point {
 	switch d {
 	case North:

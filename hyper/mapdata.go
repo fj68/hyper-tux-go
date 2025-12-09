@@ -16,12 +16,14 @@ import (
 // -|-|-|-|-|-
 // - - - - - -
 
+// Mapdata represents the layout of walls on the game board.
 type Mapdata struct {
 	Size
 	HWalls [][]int
 	VWalls [][]int
 }
 
+// NewMapdata creates a new board layout with the given size and initializes center walls.
 func NewMapdata(size Size) *Mapdata {
 	HWalls := make([][]int, size.W)
 	VWalls := make([][]int, size.H)
@@ -34,7 +36,7 @@ func NewMapdata(size Size) *Mapdata {
 	return m
 }
 
-// each cell represents wall by int of (0|North|West)
+// NewMapdataFromCSV parses board layout from a CSV reader where each cell represents wall bits.
 func NewMapdataFromCSV(r *csv.Reader) (*Mapdata, error) {
 	values := [][]int{}
 
@@ -61,6 +63,7 @@ func NewMapdataFromCSV(r *csv.Reader) (*Mapdata, error) {
 	return NewMapdataFromSlice(values)
 }
 
+// NewMapdataFromSlice creates board layout from a 2D slice where each cell represents wall bits.
 func NewMapdataFromSlice(rows [][]int) (*Mapdata, error) {
 	if len(rows) < 1 {
 		return NewMapdata(Size{0, 0}), nil
@@ -85,6 +88,7 @@ func NewMapdataFromSlice(rows [][]int) (*Mapdata, error) {
 	return m, nil
 }
 
+// PutHWall adds a horizontal wall at the given position.
 func (m *Mapdata) PutHWall(p Point) {
 	if slices.Contains(m.HWalls[p.X], p.Y) {
 		return
@@ -99,6 +103,7 @@ func (m *Mapdata) PutVWall(p Point) {
 	m.VWalls[p.Y] = append(m.VWalls[p.Y], p.X)
 }
 
+// Center returns a rectangle representing the center region of the board.
 func (m *Mapdata) Center() Rect {
 	c := m.Size.Center()
 	return NewRect(Point{c.X - 1, c.Y - 1}, Size{2, 2})
@@ -117,6 +122,7 @@ func (m *Mapdata) initCenterWalls() {
 	m.PutVWall(Point{r.BottomRight.X, r.BottomRight.Y - 1})
 }
 
+// Equals returns true if both mapdatas have the same walls and dimensions.
 func (m *Mapdata) Equals(other *Mapdata) bool {
 	intSliceEquals := func(a, b []int) bool {
 		return slicetools.Equals(a, b)

@@ -27,6 +27,7 @@ func (g *game) Layout(int, int) (int, int) {
 	return 1, 1
 }
 
+// RunTestGame runs the provided test suite in the Ebiten game window environment.
 func RunTestGame(m *testing.M) {
 	ebiten.SetWindowSize(128, 72)
 	ebiten.SetWindowTitle("Testing...")

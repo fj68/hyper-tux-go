@@ -6,7 +6,7 @@ import (
 	"github.com/fj68/hyper-tux-go/internal/slicetools"
 )
 
-// weighted random choice using linear scan algorithm
+// Choice performs weighted random selection from candidates using the given weights.
 func Choice[T any](candidates []T, weights []int) T {
 	total := slicetools.Sum(weights)
 	r := rand.Intn(total)

@@ -12,6 +12,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
+// GameState manages the main game logic including board, input, UI, and rendering.
 type GameState struct {
 	*hyper.Board
 	*SwipeEventDispatcher
@@ -21,6 +22,7 @@ type GameState struct {
 	controls *ebiten.Image
 }
 
+// NewGameState creates and initializes a new GameState with the given board size.
 func NewGameState(size hyper.Size) (*GameState, error) {
 	b, err := hyper.NewBoard(size, hyper.Placement{Actor: hyper.RandomPlace, Goal: hyper.RandomPlaceNearByWalls})
 	if err != nil {
@@ -56,6 +58,7 @@ func NewGameState(size hyper.Size) (*GameState, error) {
 	}, nil
 }
 
+// handleInput processes swipe events and applies actor movements to the board.
 func (g *GameState) handleInput() error {
 	if err := g.SwipeEventDispatcher.Update(); err != nil {
 		return err
@@ -81,6 +84,7 @@ func (g *GameState) handleInput() error {
 	return nil
 }
 
+// Update updates the game state each frame, handling input and UI updates.
 func (g *GameState) Update() error {
 	if err := g.handleInput(); err != nil {
 		return err
@@ -91,10 +95,12 @@ func (g *GameState) Update() error {
 	return nil
 }
 
+// clear fills the screen with white.
 func (g *GameState) clear(screen *ebiten.Image) {
 	screen.Fill(color.White)
 }
 
+// Draw renders the game board, actors, UI, and other visual elements.
 func (g *GameState) Draw(screen *ebiten.Image) {
 	g.clear(screen)
 
@@ -107,6 +113,7 @@ func (g *GameState) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.controls, controlsOp)
 }
 
+// drawStage renders the game board and all game elements on the stage.
 func (g *GameState) drawStage(screen *ebiten.Image) {
 	g.clear(g.stage)
 	g.drawBoard(screen)
@@ -117,6 +124,7 @@ func (g *GameState) drawStage(screen *ebiten.Image) {
 	vector.StrokeLine(screen, 0, float32(screen.Bounds().Dy()), float32(screen.Bounds().Dx()), float32(screen.Bounds().Dy()), 1, color.Black, false)
 }
 
+// drawBoard renders the board grid, walls, and center box.
 func (g *GameState) drawBoard(screen *ebiten.Image) {
 	lineColor := color.Gray{200}
 	// lines
@@ -142,12 +150,14 @@ func (g *GameState) drawBoard(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, float32(c.TopLeft.X)*CELL_SIZE, float32(c.TopLeft.Y)*CELL_SIZE, float32(c.Size().W)*CELL_SIZE-1, float32(c.Size().H)*CELL_SIZE-1, lineColor, false)
 }
 
+// drawActors renders all actors on the board.
 func (g *GameState) drawActors(screen *ebiten.Image) {
 	for _, actor := range g.Board.Actors {
 		g.drawActor(screen, actor)
 	}
 }
 
+// drawActor renders a single actor as a colored circle.
 func (g *GameState) drawActor(screen *ebiten.Image, actor *hyper.Actor) {
 	p := NewPosition(actor.Point, CELL_SIZE)
 	halfCellSize := CELL_SIZE / 2
@@ -157,12 +167,14 @@ func (g *GameState) drawActor(screen *ebiten.Image, actor *hyper.Actor) {
 	vector.StrokeCircle(screen, p.X, p.Y, r, 1, color.Black, true)
 }
 
+// drawHistory renders all recorded moves as lines.
 func (g *GameState) drawHistory(screen *ebiten.Image) {
 	for _, record := range g.History() {
 		g.drawRecord(screen, record)
 	}
 }
 
+// drawRecord renders a single move record as a line in the actor's color.
 func (g *GameState) drawRecord(screen *ebiten.Image, record *hyper.Record) {
 	lineColor := Color(record.Color)
 	start := adjust(Offset(record.Color), record.Start)
@@ -176,16 +188,19 @@ func adjust(n float32, p hyper.Point) Position {
 	return pos.Add(Position{diff, diff})
 }
 
+// drawGoal renders the goal as a colored rectangle.
 func (g *GameState) drawGoal(screen *ebiten.Image) {
 	goal := g.Board.Goal
 	vector.DrawFilledRect(screen, float32(goal.X)*CELL_SIZE, float32(goal.Y)*CELL_SIZE, CELL_SIZE-1, CELL_SIZE-1, Color(goal.Color), false)
 }
 
+// drawUI renders the UI controls panel.
 func (g *GameState) drawUI(screen *ebiten.Image) {
 	g.clear(g.controls)
 	g.UI.Draw(g.controls)
 }
 
+// createUI creates and returns the UI container with control buttons.
 func createUI(r *ResourceLoader, b *hyper.Board) (*ebitenui.UI, error) {
 	root := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout(

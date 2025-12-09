@@ -7,6 +7,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
+// loadButtonImage creates and returns button styling images for idle, hover, and pressed states.
 func loadButtonImage() (*widget.ButtonImage, error) {
 
 	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
@@ -20,6 +21,7 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 	}, nil
 }
 
+// createButton creates a button widget with the given label and click handler.
 func createButton(r *ResourceLoader, label string, onclick widget.ButtonClickedHandlerFunc) (*widget.Button, error) {
 	img, err := loadButtonImage()
 	if err != nil {

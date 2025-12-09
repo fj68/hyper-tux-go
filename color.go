@@ -6,6 +6,7 @@ import (
 	"github.com/fj68/hyper-tux-go/hyper"
 )
 
+// Color returns the RGBA color value for a given hyper.Color.
 func Color(c hyper.Color) color.Color {
 	switch c {
 	case hyper.Black:
@@ -22,6 +23,7 @@ func Color(c hyper.Color) color.Color {
 	return color.Transparent
 }
 
+// Offset returns a visual offset value for drawing history trails of different colored actors.
 func Offset(color hyper.Color) float32 {
 	switch color {
 	case hyper.Red:

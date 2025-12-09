@@ -1,7 +1,9 @@
 package hyper
 
+// Direction represents a direction in the game world.
 type Direction int
 
+// Direction constants for movement in cardinal directions.
 const (
 	North Direction = 1
 	West Direction = 2
@@ -9,6 +11,7 @@ const (
 	South Direction = 8
 )
 
+// String returns the string representation of the direction.
 func (d Direction) String() string {
 	switch d {
 	case North:
