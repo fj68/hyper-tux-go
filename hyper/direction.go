@@ -6,8 +6,8 @@ type Direction int
 // Direction constants for movement in cardinal directions.
 const (
 	North Direction = 1
-	West Direction = 2
-	East Direction = 4
+	West  Direction = 2
+	East  Direction = 4
 	South Direction = 8
 )
 
