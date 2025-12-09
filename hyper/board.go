@@ -57,7 +57,6 @@ func (b *Board) NewGame() error {
 	if err := b.PlaceGoal(); err != nil {
 		return err
 	}
-	log.Println(b.Goal)
 	return nil
 }
 
