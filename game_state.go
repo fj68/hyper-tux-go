@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 
@@ -67,17 +66,10 @@ func (g *GameState) handleInput() error {
 	for g.SwipeEventDispatcher.Len() > 0 {
 		e := g.SwipeEventDispatcher.Pop()
 		if e == nil {
-			return fmt.Errorf("SwipeEvent is nil")
+			continue
 		}
-		actor, ok := g.Board.ActorAt(e.Start)
-		if !ok {
-			// TODO: this should not be an error
-			return fmt.Errorf("no actor at %+v", e.Start)
-		}
-		_, ok = g.Board.MoveActor(actor, e.Direction())
-		if !ok {
-			// TODO: this should not be an error
-			return fmt.Errorf("unable to move: %+v to %s", actor, e.Direction())
+		if actor, ok := g.Board.ActorAt(e.Start); ok {
+			g.Board.MoveActor(actor, e.Direction())
 		}
 	}
 
