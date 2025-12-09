@@ -6,7 +6,6 @@ package hyper
 
 import (
 	"fmt"
-	"log"
 	"maps"
 	"math/rand"
 	"slices"
