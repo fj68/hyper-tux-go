@@ -66,10 +66,13 @@ func (b *Board) SomethingExists(pos Point) bool {
 	return exists || pos.Equals(b.Goal.Point) || c.Contains(pos)
 }
 
-// PlaceActor places an actor on a random unoccupied position on the board.
+// PlaceActor places an actor on the board according to PlacementAlgorithm.
 func (b *Board) PlaceActor(color Color) error {
 	for range 50 {
-		pos := b.Placement.Actor(b)
+		pos, ok := b.Placement.Actor(b, color)
+		if !ok {
+			continue
+		}
 		if !b.SomethingExists(pos) {
 			b.Actors[color].MoveTo(pos)
 			return nil
@@ -78,16 +81,15 @@ func (b *Board) PlaceActor(color Color) error {
 	return fmt.Errorf("unable to place %s actor", color)
 }
 
-// PlaceGoal places a goal with a random color on a random unoccupied position.
+// PlaceGoal places the goal on the board according to PlacementAlgorithm.
 func (b *Board) PlaceGoal() error {
-	var pos Point
 	for range 50 {
-		pos = b.Placement.Goal(b)
-		if !b.SomethingExists(pos) {
-			b.Goal = Goal{
-				Color: RandomColor(),
-				Point: pos,
-			}
+		goal, ok := b.Placement.Goal(b)
+		if !ok {
+			continue
+		}
+		if !b.SomethingExists(goal.Point) {
+			b.Goal = goal
 			return nil
 		}
 	}

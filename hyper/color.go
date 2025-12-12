@@ -46,7 +46,7 @@ var ColorWeights = []int{
 	12, // Black
 }
 
-// RandomColor returns a random Color selected using weighted probabilities.
-func RandomColor() Color {
+// ColorAtRandom returns a random Color selected using weighted probabilities.
+func ColorAtRandom() Color {
 	return Choice(AllColors, ColorWeights)
 }
