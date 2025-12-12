@@ -44,8 +44,8 @@ type SwipeEventDispatcher struct {
 	start          *Position
 }
 
-// NewSwipeEventDispather creates a new SwipeEventDispatcher with the given event handlers.
-func NewSwipeEventDispather(handlers ...SwipeEventHandler) *SwipeEventDispatcher {
+// NewSwipeEventDispatcher creates a new SwipeEventDispatcher with the given event handlers.
+func NewSwipeEventDispatcher(handlers ...SwipeEventHandler) *SwipeEventDispatcher {
 	return &SwipeEventDispatcher{
 		q:             list.New(),
 		EventHandlers: handlers,

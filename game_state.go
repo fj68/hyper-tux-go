@@ -46,7 +46,7 @@ func NewGameState(size hyper.Size) (*GameState, error) {
 
 	return &GameState{
 		Board: b,
-		SwipeEventDispatcher: NewSwipeEventDispather(
+		SwipeEventDispatcher: NewSwipeEventDispatcher(
 			&MouseEventHandler{},
 			&TouchEventHandler{},
 		),
